@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model QRCode {
+  id          String    @id @default(cuid())
+  name        String
+  token       String    @unique
+  description String?
+  type        String    // "guest" | "staff" | "custom"
+  isActive    Boolean   @default(true)
+  modules     QRModule[]
+  scans       QRCodeScan[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Module {
+  id          String    @id @default(cuid())
+  name        String    @unique // "menu", "floor-plan", etc.
+  displayName String
+  description String?
+  icon        String?
+  route       String
+  isPublic    Boolean   @default(false)
+  qrCodes     QRModule[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model QRModule {
+  id        String   @id @default(cuid())
+  qrCodeId  String
+  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  moduleId  String
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([qrCodeId, moduleId])
+}
+
+model TechnicalDocument {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // "maintenance", "cleaning", "safety", etc.
+  description String?
+  content     String?  // Markdown hoặc HTML
+  fileUrl     String?  // PDF file path
+  fileName    String?
+  fileSize    Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Menu {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  fileUrl     String?   // PDF, image, or flipbook URL
+  fileType    String?   // "pdf" | "image" | "flipbook"
+  flipbookId  String?
+  flipbook    Flipbook?  @relation(fields: [flipbookId], references: [id], onDelete: SetNull)
+  items       MenuItem[]
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Flipbook {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pages       String[] // Array of image URLs
+  menus       Menu[]   // Many menus can use the same flipbook
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  menuId      String
+  menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float?
+  image       String?
+  category    String?  // "appetizer", "main", "dessert", etc.
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // "gym" | "bar" | "business-center"
+  description String
+  images      String[] // Array of image URLs (PostgreSQL supports arrays)
+  hours       String?
+  location    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Information {
+  id          String   @id @default(cuid())
+  category    String   // "wifi" | "phone" | "tv" | "room-info"
+  title       String
+  content     String
+  icon        String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FloorPlan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?  // Floor plan image/PDF
+  fileType    String?  // "image" | "pdf"
+  rooms       Room[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  floorPlanId String
+  floorPlan   FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  number      String
+  type        String   // "standard" | "deluxe" | "suite" | "villa"
+  description String?
+  x           Float?   // X coordinate for clickable area (0-100 percentage)
+  y           Float?   // Y coordinate for clickable area (0-100 percentage)
+  width       Float?   // Width percentage
+  height      Float?   // Height percentage
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QRCodeScan {
+  id          String   @id @default(cuid())
+  qrCodeId    String
+  qrCode      QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  scannedAt   DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+}
+
