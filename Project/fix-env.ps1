@@ -51,7 +51,7 @@ if (Test-Path $envFile) {
     @"
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/resort_info?schema=public"
 ADMIN_PASSWORD="admin123"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL=""
 "@ | Out-File -FilePath $envFile -Encoding utf8
     Write-Host ".env file created!" -ForegroundColor Green
 }

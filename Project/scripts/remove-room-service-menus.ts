@@ -5,14 +5,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Removing room-service menus...');
 
-  // Find all menus with category "room-service" or hotel-related names
+  // Find all menus with hotel-related names
+  // Note: Menu model doesn't have category field, only MenuItem has category
   const roomServiceMenus = await prisma.menu.findMany({
     where: {
       OR: [
-        { category: 'room-service' },
         { name: { contains: 'khách sạn', mode: 'insensitive' } },
         { name: { contains: 'hotel', mode: 'insensitive' } },
         { name: { contains: 'room service', mode: 'insensitive' } },
+        { name: { contains: 'room-service', mode: 'insensitive' } },
       ],
     },
     include: {
@@ -27,7 +28,7 @@ async function main() {
 
   console.log(`Found ${roomServiceMenus.length} menu(s) to delete:`);
   roomServiceMenus.forEach((menu) => {
-    console.log(`- ${menu.name} (${menu.category}) - ${menu.items.length} items`);
+    console.log(`- ${menu.name} - ${menu.items.length} items`);
   });
 
   // Delete all room-service menus (items will be cascade deleted)

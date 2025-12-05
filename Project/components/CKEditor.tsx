@@ -16,7 +16,7 @@ export default function CKEditorComponent({ value, onChange, placeholder = 'Nháº
   return (
     <div className="ckeditor-wrapper">
       <CKEditor
-        editor={ClassicEditor}
+        editor={ClassicEditor as any}
         data={value}
         onReady={(editor) => {
           editorRef.current = editor;

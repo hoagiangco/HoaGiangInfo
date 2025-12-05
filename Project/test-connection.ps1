@@ -20,7 +20,7 @@ foreach ($pwd in $passwords) {
         $content = @(
             "DATABASE_URL=`"$dbUrl`"",
             'ADMIN_PASSWORD="admin123"',
-            'NEXT_PUBLIC_APP_URL="http://localhost:3000"'
+            'NEXT_PUBLIC_APP_URL=""'
         )
         $content | Out-File -FilePath .env.local -Encoding utf8
         

@@ -40,7 +40,9 @@ export async function POST(request: Request) {
         continue; // Skip unsupported files
       }
 
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const arrayBuffer = await file.arrayBuffer();
+      // Convert to proper Buffer type to avoid type issues
+      const buffer: Buffer = Buffer.from(new Uint8Array(arrayBuffer));
       const timestamp = Date.now();
       const extension = isPDF ? 'pdf' : file.name.split('.').pop() || 'jpg';
       const fileName = `${timestamp}-${i + 1}.${extension}`;

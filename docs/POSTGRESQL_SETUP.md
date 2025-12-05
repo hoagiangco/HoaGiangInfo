@@ -40,8 +40,10 @@ Cập nhật file `.env` với connection string:
 ```env
 DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/resort_info?schema=public"
 ADMIN_PASSWORD="admin123"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:6001"
 ```
+
+**Lưu ý:** `NEXT_PUBLIC_APP_URL` là bắt buộc và phải được set trong `.env.local` (ví dụ: `http://localhost:6001`).
 
 **Format connection string:**
 ```
@@ -77,6 +79,8 @@ npx prisma db pull
 ```
 
 Nếu không có lỗi, database đã kết nối thành công!
+
+
 
 
 

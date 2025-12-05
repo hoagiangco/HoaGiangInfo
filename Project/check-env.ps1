@@ -46,8 +46,8 @@ DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/resort_info?sche
 # Admin Password
 ADMIN_PASSWORD="admin123"
 
-# Next.js
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# Next.js - Set your app URL (e.g., http://localhost:6001)
+NEXT_PUBLIC_APP_URL=""
 "@ | Out-File -FilePath .env -Encoding utf8
     
     Write-Host ".env file created! Please update DATABASE_URL with your PostgreSQL credentials." -ForegroundColor Green

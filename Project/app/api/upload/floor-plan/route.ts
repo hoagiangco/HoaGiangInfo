@@ -41,10 +41,11 @@ export async function POST(request: Request) {
     }
 
     const bytes = await file.arrayBuffer();
-    const originalBuffer = Buffer.from(bytes);
+    // Convert to proper Buffer type to avoid type issues
+    const originalBuffer: Buffer = Buffer.from(new Uint8Array(bytes));
 
     // Only compress if it's an image (not PDF)
-    let buffer = originalBuffer;
+    let buffer: Buffer = originalBuffer;
     let fileName: string;
     let fileUrl: string;
     let finalSize = originalBuffer.length;
@@ -52,12 +53,13 @@ export async function POST(request: Request) {
 
     if (file.type.startsWith('image/')) {
       // Compress image
-      buffer = await compressImage(originalBuffer, {
+      const compressed = await compressImage(originalBuffer, {
         maxWidth: 2560, // Larger for floor plans
         maxHeight: 2560,
         quality: 90, // Higher quality for floor plans
         format: 'jpeg',
       });
+      buffer = compressed;
 
       // Generate optimized filename
       const timestamp = Date.now();

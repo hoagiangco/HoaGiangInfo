@@ -2,7 +2,9 @@
 
 ## Base URL
 
-Development: `http://localhost:3000/api`
+Development: `{NEXT_PUBLIC_APP_URL}/api`
+
+**Lưu ý:** `NEXT_PUBLIC_APP_URL` phải được set trong `.env.local` (ví dụ: `http://localhost:6001`)
 
 ## Authentication
 
@@ -285,6 +287,8 @@ Status codes:
 - `403` - Forbidden
 - `404` - Not Found
 - `500` - Internal Server Error
+
+
 
 
 

@@ -71,8 +71,13 @@ export default async function HomePage() {
             href={qrLinkUrl}
             className="text-primary-600 hover:text-primary-800 underline text-sm"
           >
-            {process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}
-            {qrLinkUrl}
+            {(() => {
+              const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+              if (!appUrl) return qrLinkUrl;
+              // Lấy URL đầu tiên nếu có nhiều URL được phân cách bởi dấu phẩy
+              const cleanUrl = appUrl.split(',')[0].trim();
+              return `${cleanUrl}${qrLinkUrl}`;
+            })()}
           </Link>
         </div>
       </div>

@@ -18,8 +18,17 @@ async function generateQRCodes() {
     const outputDir = join(process.cwd(), 'public', 'qr-codes');
     await mkdir(outputDir, { recursive: true });
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      console.error('ERROR: NEXT_PUBLIC_APP_URL is not set in .env.local');
+      console.error('Please set NEXT_PUBLIC_APP_URL in your .env.local file');
+      process.exit(1);
+    }
+    // Lấy URL đầu tiên nếu có nhiều URL được phân cách bởi dấu phẩy
+    const baseUrl = appUrl.split(',')[0].trim();
+
     for (const qr of qrCodes) {
-      const url = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${qr.token}`;
+      const url = `${baseUrl}/${qr.token}`;
       
       console.log(`Generating QR for: ${qr.name} (${qr.token})`);
       console.log(`URL: ${url}`);
@@ -48,7 +57,7 @@ async function generateQRCodes() {
 
     console.log(`\n✅ Generated ${qrCodes.length} QR code(s) in public/qr-codes/`);
     console.log('\nYou can now:');
-    console.log('1. View QR codes at: http://localhost:3000/qr-codes/[token].png');
+    console.log(`1. View QR codes at: ${baseUrl}/qr-codes/[token].png`);
     console.log('2. Download and print them');
     console.log('3. Use them in your resort');
   } catch (error) {

@@ -15,7 +15,12 @@ export default async function QRCodesPage() {
     orderBy: { name: 'asc' },
   });
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) {
+    throw new Error('NEXT_PUBLIC_APP_URL is not set in .env.local');
+  }
+  // Lấy URL đầu tiên nếu có nhiều URL được phân cách bởi dấu phẩy
+  const baseUrl = appUrl.split(',')[0].trim();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 py-12 px-4">

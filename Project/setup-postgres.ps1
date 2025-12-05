@@ -63,7 +63,7 @@ if ($LASTEXITCODE -eq 0) {
         @"
 DATABASE_URL="$dbUrl"
 ADMIN_PASSWORD="admin123"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL=""
 "@ | Out-File -FilePath $envFile -Encoding utf8
         Write-Host ".env file created with DATABASE_URL" -ForegroundColor Green
     }

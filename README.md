@@ -61,12 +61,14 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` file:
+Edit `.env.local` file:
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/resort_info?schema=public"
 ADMIN_PASSWORD="your-admin-password"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:6001"
 ```
+
+**Lưu ý:** `NEXT_PUBLIC_APP_URL` là bắt buộc và phải được set trong `.env.local` (ví dụ: `http://localhost:6001`).
 
 4. Setup database:
 ```bash
@@ -85,7 +87,7 @@ npm run db:seed
 npm run dev
 ```
 
-Website sẽ chạy tại `http://localhost:3000`
+Website sẽ chạy tại URL được set trong `NEXT_PUBLIC_APP_URL` (mặc định port 6001)
 
 ## Usage
 
@@ -95,11 +97,11 @@ Sau khi seed database, bạn sẽ có 2 QR codes mặc định:
 - **Guest QR**: Token `guest-2024` - Truy cập các module cơ bản
 - **Staff QR**: Token `staff-2024` - Truy cập tất cả modules bao gồm technical documents
 
-Truy cập: `http://localhost:3000/guest-2024` hoặc `http://localhost:3000/staff-2024`
+Truy cập: `{NEXT_PUBLIC_APP_URL}/guest-2024` hoặc `{NEXT_PUBLIC_APP_URL}/staff-2024`
 
 ### Admin Panel
 
-1. Truy cập: `http://localhost:3000/admin/login`
+1. Truy cập: `{NEXT_PUBLIC_APP_URL}/admin/login`
 2. Đăng nhập với mật khẩu đã set trong `.env` (mặc định: `admin123`)
 3. Quản lý QR codes, modules, và content
 
@@ -185,6 +187,8 @@ npm run db:seed
 ## License
 
 MIT
+
+
 
 
 

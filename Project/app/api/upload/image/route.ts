@@ -38,7 +38,8 @@ export async function POST(request: Request) {
     }
 
     const bytes = await file.arrayBuffer();
-    const originalBuffer = Buffer.from(bytes);
+    // Convert to proper Buffer type to avoid type issues
+    const originalBuffer: Buffer = Buffer.from(new Uint8Array(bytes));
 
     // Compress image
     const compressedBuffer = await compressImage(originalBuffer, {

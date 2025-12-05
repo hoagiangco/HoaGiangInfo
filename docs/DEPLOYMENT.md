@@ -87,7 +87,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 6001
 
 CMD ["npm", "start"]
 ```
@@ -95,7 +95,7 @@ CMD ["npm", "start"]
 Build and run:
 ```bash
 docker build -t resort-info .
-docker run -p 3000:3000 --env-file .env resort-info
+docker run -p 6001:6001 --env-file .env resort-info
 ```
 
 ### Traditional Server
@@ -199,6 +199,8 @@ npm run db:migrate
 # Rebuild
 npm run build
 ```
+
+
 
 
 

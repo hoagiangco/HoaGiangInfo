@@ -18,11 +18,16 @@ export default async function TokenLayout({
 
   // Record scan
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/qr/scan`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: params.token }),
-    });
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (appUrl) {
+      // Lấy URL đầu tiên nếu có nhiều URL được phân cách bởi dấu phẩy
+      const cleanUrl = appUrl.split(',')[0].trim();
+      await fetch(`${cleanUrl}/api/qr/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: params.token }),
+      });
+    }
   } catch (error) {
     // Ignore scan recording errors
   }
