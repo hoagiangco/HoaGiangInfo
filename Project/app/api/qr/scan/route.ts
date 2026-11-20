@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   try {
+    if (!rateLimit(`scanapi:${getClientIp(request.headers)}`, 30, 60 * 1000).ok) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
     const body = await request.json();
     const { token } = body;
 

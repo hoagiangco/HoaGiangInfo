@@ -47,7 +47,7 @@ Dashboard hiển thị thống kê:
 
 QR code URL: `https://your-domain.com/[token]`
 
-Ví dụ: `https://resort.com/guest-2024`
+Ví dụ: `https://resort.com/guest`
 
 ## Quản lý Modules
 
@@ -155,6 +155,10 @@ Documents chỉ hiển thị cho QR codes có module "technical" được gán.
 - Kiểm tra kích thước file (< 10MB)
 - Kiểm tra định dạng file (PDF only)
 - Kiểm tra quyền ghi thư mục uploads
+
+
+
+
 
 
 

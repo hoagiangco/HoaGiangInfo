@@ -28,7 +28,7 @@ Response:
 {
   "id": "clxxx",
   "name": "Guest QR Code",
-  "token": "guest-2024",
+  "token": "guest",
   "type": "guest",
   "isActive": true,
   "modules": ["menu", "room-service", "floor-plan", "services", "information"]

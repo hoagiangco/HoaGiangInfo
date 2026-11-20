@@ -19,6 +19,7 @@ model QRCode {
   isActive    Boolean   @default(true)
   modules     QRModule[]
   scans       QRCodeScan[]
+  feedbacks   Feedback[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -56,6 +57,13 @@ model TechnicalDocument {
   fileUrl     String?  // PDF file path
   fileName    String?
   fileSize    Int?
+  mimeType    String?
+  storageKey  String?  // file in private storage (outside public/)
+  visibility  DocVisibility @default(ALL_STAFF)
+  departments String[] // used when visibility = DEPARTMENT
+  minRole     Role?    // used when visibility = ROLE_MIN
+  uploadedById String?
+  uploadedBy  User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -161,3 +169,121 @@ model QRCodeScan {
   userAgent   String?
 }
 
+
+// ---------------------------------------------------------------------------
+// Internal area: accounts, sessions, audit
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+enum DocVisibility {
+  ALL_STAFF   // every active internal user
+  DEPARTMENT  // only users of the listed departments
+  ROLE_MIN    // users with role >= minRole
+  PRIVATE     // admins and the uploader only
+}
+
+model User {
+  id               String              @id @default(cuid())
+  email            String              @unique
+  name             String
+  passwordHash     String
+  role             Role                @default(STAFF)
+  department       String?
+  isActive         Boolean             @default(true)
+  failedAttempts   Int                 @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  sessions         Session[]
+  documents        TechnicalDocument[]
+  assignedFeedback Feedback[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique // sha256 of the cookie token; the raw token is never stored
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userEmail String?
+  action    String   // e.g. auth.login, document.download, feedback.update
+  entity    String?
+  entityId  String?
+  meta      Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
+}
+
+// ---------------------------------------------------------------------------
+// Customer feedback
+// ---------------------------------------------------------------------------
+
+enum FeedbackStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+}
+
+model Feedback {
+  id            String          @id @default(cuid())
+  qrCodeId      String?
+  qrCode        QRCode?         @relation(fields: [qrCodeId], references: [id], onDelete: SetNull)
+  venue         String          // hotel | restaurant | spa | other
+  location      String?         // room / table number (optional)
+  overallRating Int             // 1..5
+  ratings       Json?           // per-criteria ratings 1..5
+  npsScore      Int?            // 0..10
+  comment       String?
+  guestName     String?
+  contact       String?         // phone / email (optional, PII)
+  language      String          @default("vi")
+  status        FeedbackStatus  @default(NEW)
+  assigneeId    String?
+  assignee      User?           @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  internalNote  String?
+  ipHash        String?
+  events        FeedbackEvent[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([overallRating])
+  @@index([assigneeId])
+}
+
+model FeedbackEvent {
+  id         String   @id @default(cuid())
+  feedbackId String
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  userId     String?
+  userEmail  String?
+  type       String   // status | assign | note
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([feedbackId])
+}

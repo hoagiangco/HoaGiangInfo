@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Module {
@@ -48,7 +48,6 @@ export default function QRCodeEditForm({
     setError('');
 
     try {
-      // Update QR code
       const response = await fetch(`/api/qr/${qrCode.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -61,10 +60,14 @@ export default function QRCodeEditForm({
 
       // Update modules
       const currentModuleIds = qrCode.modules.map((m) => m.module.id);
-      const toAdd = selectedModules.filter((id) => !currentModuleIds.includes(id));
-      const toRemove = currentModuleIds.filter((id) => !selectedModules.includes(id));
+      const modulesToAdd = selectedModules.filter(
+        (id) => !currentModuleIds.includes(id)
+      );
+      const modulesToRemove = currentModuleIds.filter(
+        (id) => !selectedModules.includes(id)
+      );
 
-      for (const moduleId of toAdd) {
+      for (const moduleId of modulesToAdd) {
         await fetch(`/api/qr/${qrCode.id}/modules`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -72,17 +75,42 @@ export default function QRCodeEditForm({
         });
       }
 
-      for (const moduleId of toRemove) {
-        await fetch(`/api/qr/${qrCode.id}/modules?moduleId=${moduleId}`, {
+      for (const moduleId of modulesToRemove) {
+        await fetch(`/api/qr/${qrCode.id}/modules`, {
           method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ moduleId }),
         });
       }
 
       router.push('/admin/qr-codes');
       router.refresh();
-    } catch (err) {
-      setError('Có lỗi xảy ra khi cập nhật');
+    } catch (err: any) {
+      setError(err.message || 'Có lỗi xảy ra khi cập nhật QR code');
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('Bạn có chắc chắn muốn xóa mã QR này? Hành động này không thể hoàn tác.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/qr/${qrCode.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete QR code');
+      }
+
+      router.push('/admin/qr-codes');
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || 'Có lỗi xảy ra khi xóa QR code');
       setLoading(false);
     }
   }
@@ -95,131 +123,123 @@ export default function QRCodeEditForm({
     );
   }
 
+  const input = 'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#866526]/20 focus:border-[#866526] transition-all';
+  const label = 'block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5';
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-card border border-slate-200/80 p-8 space-y-6 max-w-3xl">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-4 py-3 rounded-xl">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tên
-        </label>
+        <label className={label}>Tên Điểm Truy Cập *</label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className={input}
           required
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Token
-        </label>
-        <input
-          type="text"
-          value={formData.token}
-          onChange={(e) => setFormData({ ...formData, token: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          required
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={label}>Token URL *</label>
+          <input
+            type="text"
+            value={formData.token}
+            onChange={(e) => setFormData({ ...formData, token: e.target.value })}
+            className={input}
+            required
+          />
+        </div>
+
+        <div>
+          <label className={label}>Phân Loại</label>
+          <select
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            className={input}
+          >
+            <option value="guest">Khách hàng (Guest)</option>
+            <option value="custom">Tùy chỉnh (Khu vực đặc biệt)</option>
+          </select>
+        </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Mô tả
-        </label>
+        <label className={label}>Mô Tả / Vị Trí Cụ Thể</label>
         <textarea
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
           }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className={input}
           rows={3}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Loại
-        </label>
-        <select
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-        >
-          <option value="guest">Guest</option>
-          <option value="staff">Staff</option>
-          <option value="custom">Custom</option>
-        </select>
+        <label className={label}>Modules Được Phép Truy Cập</label>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 max-h-56 overflow-y-auto space-y-2">
+          {allModules.map((module) => (
+            <label
+              key={module.id}
+              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={selectedModules.includes(module.id)}
+                onChange={() => toggleModule(module.id)}
+                className="rounded border-slate-300 text-[#866526] focus:ring-[#866526]"
+              />
+              <span className="text-xs font-semibold text-slate-800">{module.displayName}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div>
-        <label className="flex items-center space-x-2">
+        <label className="flex items-center space-x-2.5 cursor-pointer">
           <input
             type="checkbox"
             checked={formData.isActive}
             onChange={(e) =>
               setFormData({ ...formData, isActive: e.target.checked })
             }
-            className="rounded"
+            className="rounded border-slate-300 text-[#866526] focus:ring-[#866526]"
           />
-          <span className="text-sm font-medium text-gray-700">Active</span>
+          <span className="text-xs font-semibold text-slate-700">Đang kích hoạt</span>
         </label>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Modules
-        </label>
-        <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto">
-          {allModules.map((module) => (
-            <label
-              key={module.id}
-              className="flex items-center space-x-2 py-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={selectedModules.includes(module.id)}
-                onChange={() => toggleModule(module.id)}
-                className="rounded"
-              />
-              <span className="text-sm text-gray-700">{module.displayName}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex space-x-4">
+      <div className="flex items-center space-x-3 pt-4 border-t border-slate-100">
         <button
           type="submit"
           disabled={loading}
-          className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 disabled:bg-gray-400"
+          className="bg-gradient-to-r from-[#A38035] to-[#866526] hover:from-[#866526] hover:to-[#684B1B] text-white px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wider uppercase shadow-md shadow-[#866526]/20 disabled:bg-slate-300 transition-all"
         >
-          {loading ? 'Đang lưu...' : 'Lưu'}
+          {loading ? 'Đang lưu...' : 'Lưu Thay Đổi'}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400"
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all"
         >
           Hủy
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={loading}
+          className="ml-auto bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all"
+        >
+          Xóa Mã QR
         </button>
       </div>
     </form>
   );
 }
-
-
-
-
-
-
-
-
-
-

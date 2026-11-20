@@ -22,8 +22,9 @@ export async function POST(request: Request) {
     }
 
     // Validate file type (image or PDF)
-    const isValidType =
-      file.type.startsWith('image/') || file.type === 'application/pdf';
+    const isPdfFile =
+      file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isValidType = file.type.startsWith('image/') || isPdfFile;
 
     if (!isValidType) {
       return NextResponse.json(
@@ -32,10 +33,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (max 25MB)
+    if (file.size > 25 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'File size must be less than 10MB' },
+        { error: 'File size must be less than 25MB' },
         { status: 400 }
       );
     }
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
       size: finalSize,
       originalSize: file.size,
       compressionRatio: file.type.startsWith('image/') ? `${compressionRatio}%` : 'N/A (PDF)',
-      type: file.type.startsWith('image/') ? 'image/jpeg' : file.type,
+      type: file.type.startsWith('image/') ? 'image/jpeg' : (file.type || 'application/pdf'),
     });
   } catch (error) {
     console.error('Error uploading floor plan:', error);

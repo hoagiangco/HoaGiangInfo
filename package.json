@@ -1,0 +1,18 @@
+{
+  "name": "hoagiang-info",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix Project run dev",
+    "build": "npm --prefix Project run build",
+    "start": "npm --prefix Project run start",
+    "lint": "npm --prefix Project run lint",
+    "db:generate": "npm --prefix Project run db:generate",
+    "db:push": "npm --prefix Project run db:push",
+    "db:migrate": "npm --prefix Project run db:migrate",
+    "db:seed": "npm --prefix Project run db:seed",
+    "user:create": "npm --prefix Project run user:create --",
+    "docs:migrate": "npm --prefix Project run docs:migrate",
+    "test:authz": "npm --prefix Project run test:authz"
+  }
+}

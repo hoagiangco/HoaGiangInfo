@@ -1,201 +1,122 @@
-# Resort Information Website
+# HoaGiangInfo - Hệ thống thông tin khách hàng & quản lý nội bộ
 
-Website thông tin resort với hệ thống QR code phân quyền module. Khách hàng và nhân viên có thể quét QR code để truy cập các thông tin và dịch vụ khác nhau dựa trên quyền truy cập.
+Hệ thống thông tin đa chức năng dành cho Nhà hàng & Khách sạn:
+- **Phía Khách hàng (Customer):** Quét mã QR tại bàn / phòng để xem menu, sơ đồ, tiện ích, dịch vụ, hướng dẫn và **gửi đánh giá / phản hồi trải nghiệm dịch vụ**.
+- **Phía Nội bộ (Internal):** Cổng quản trị phân quyền đa cấp (RBAC), **kho lưu trữ tài liệu nội bộ riêng tư** (bảo mật nghiêm ngặt), tiếp nhận & phân công xử lý phản hồi khách hàng, quản lý nội dung CMS và nhật ký kiểm toán (Audit Logs).
 
-## Tính năng
+---
 
-### Cho Khách Hàng (Guest)
-- Xem menu nhà hàng
-- Xem menu room service
-- Xem sơ đồ phòng khách sạn
-- Xem các dịch vụ: gym, bar, business center
-- Xem thông tin cần biết: WiFi password, phone guide, SCTV channel list, room info
+## 1. Phân chia rõ ràng: Khách hàng vs Nội bộ
 
-### Cho Nhân Viên (Staff)
-- Tất cả tính năng của khách hàng
-- Xem tài liệu kỹ thuật (PDF)
+| Đặc điểm | Vùng Khách hàng (`/[token]`) | Vùng Nội bộ (`/admin`, `/api/internal/*`) |
+|---|---|---|
+| **Xác thực** | Token QR tĩnh theo bàn/phòng (không tài khoản) | Tài khoản nhân viên cá nhân (Email + Mật khẩu bcrypt) |
+| **Phiên làm việc** | Không lưu phiên nhạy cảm | Session DB-backed (cookie `hg_session`, sha256 token hash) |
+| **Quyền hạn** | Chỉ đọc nội dung công khai (`isActive=true`) & gửi phản hồi | Phân quyền 4 vai trò: `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `STAFF` |
+| **Tài liệu nội bộ** | **Tuyệt đối không thể truy cập** (bị chặn ở middleware + route + storage) | Phân quyền theo phòng ban & cấp bậc; lưu ngoài thư mục public |
+| **Phản hồi** | Chỉ được gửi (POST write-only, rate limit, honeypot) | Hộp thư xử lý, giao việc, ghi chú, xuất CSV |
 
-### Admin Panel
-- Quản lý QR codes và phân quyền module
-- Quản lý modules
-- Quản lý menu và menu items
-- Quản lý services
-- Quản lý information
-- Upload và quản lý technical documents
+---
 
-## Tech Stack
+## 2. Hệ thống phân quyền (RBAC)
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Icons**: React Icons
-- **QR Code**: qrcode library
-- **PDF Viewer**: react-pdf
+1. **SUPER_ADMIN**: Toàn quyền hệ thống, quản lý mọi tài khoản (kể cả Admin khác).
+2. **ADMIN**: Quản lý người dùng cấp dưới, quản lý toàn bộ nội dung CMS, xem mọi tài liệu và nhật ký truy cập.
+3. **MANAGER (Quản lý)**: Tiếp nhận phản hồi khách hàng, giao việc cho nhân viên, xem thông tin liên hệ khách hàng (PII), tải lên và xem tài liệu thuộc phòng ban quản lý.
+4. **STAFF (Nhân viên)**: Chỉ xem tài liệu chung hoặc tài liệu phòng ban mình; xử lý phản hồi được quản lý giao trực tiếp. Không thể vào CMS, quản lý user hay xem audit log.
 
-## Setup
+---
 
-### Prerequisites
+## 3. Khởi tạo & Cài đặt
 
-- Node.js 18+ 
-- PostgreSQL database
-- npm hoặc yarn
+### Yêu cầu
+- Node.js 18+ (khuyên dùng LTS)
+- PostgreSQL
 
-### Installation
+### Các bước cài đặt
 
-1. Clone repository:
+1. Di chuyển vào thư mục dự án:
 ```bash
-git clone <repository-url>
-cd HoaGiangInfo
-```
-
-2. Install dependencies:
-```bash
-cd Frontend
+cd Project
 npm install
 ```
 
-3. Setup environment variables:
+2. Cấu hình file môi trường:
 ```bash
 cp .env.example .env
 ```
+Cập nhật thông tin trong `.env`:
+- `DATABASE_URL`: Đường dẫn kết nối PostgreSQL
+- `NEXT_PUBLIC_APP_URL`: URL chạy ứng dụng (ví dụ: `http://localhost:6001`)
+- `APP_SECRET`: Chuỗi ngẫu nhiên dùng băm IP chống spam feedback
+- `STORAGE_DIR`: Thư mục lưu trữ tài liệu nội bộ (mặc định `./storage`, nằm ngoài thư mục `public/`)
 
-Edit `.env.local` file:
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/resort_info?schema=public"
-ADMIN_PASSWORD="your-admin-password"
-NEXT_PUBLIC_APP_URL="http://localhost:6001"
-```
-
-**Lưu ý:** `NEXT_PUBLIC_APP_URL` là bắt buộc và phải được set trong `.env.local` (ví dụ: `http://localhost:6001`).
-
-4. Setup database:
+3. Khởi tạo Cơ sở dữ liệu:
 ```bash
-# Generate Prisma client
-npm run db:generate
-
-# Push schema to database
-npm run db:push
-
-# Seed database with initial data
+npx prisma generate
+npx prisma db push
 npm run db:seed
 ```
 
-5. Run development server:
+4. Tạo tài khoản Super Admin đầu tiên:
+```bash
+npm run user:create -- --email admin@hoagiang.vn --name "Ban Giám Đốc" --role SUPER_ADMIN
+```
+*(Hệ thống sẽ nhắc nhập mật khẩu an toàn: tối thiểu 10 ký tự, có chữ hoa, chữ thường và chữ số).*
+
+5. Chạy ứng dụng:
 ```bash
 npm run dev
+# hoặc build production
+npm run build
+npm start
 ```
 
-Website sẽ chạy tại URL được set trong `NEXT_PUBLIC_APP_URL` (mặc định port 6001)
+---
 
-## Usage
+## 4. Kiểm thử bảo mật & Phân quyền
 
-### QR Codes
+Hệ thống tích hợp sẵn bộ kiểm thử phân quyền tự động:
+```bash
+npm run test:authz
+```
+Kiểm tra tự động:
+- Khách hàng vô danh / giả mạo cookie không thể truy cập bất kỳ trang hay API nội bộ nào.
+- Nhân viên (STAFF) không thể xem tài liệu phòng ban khác hoặc chỉnh sửa tài liệu.
+- Nhân viên không thể xem dữ liệu phản hồi nếu không được giao.
+- Kiểm tra cơ chế chống CSRF và rate-limiting.
 
-Sau khi seed database, bạn sẽ có 2 QR codes mặc định:
-- **Guest QR**: Token `guest-2024` - Truy cập các module cơ bản
-- **Staff QR**: Token `staff-2024` - Truy cập tất cả modules bao gồm technical documents
+---
 
-Truy cập: `{NEXT_PUBLIC_APP_URL}/guest-2024` hoặc `{NEXT_PUBLIC_APP_URL}/staff-2024`
-
-### Admin Panel
-
-1. Truy cập: `{NEXT_PUBLIC_APP_URL}/admin/login`
-2. Đăng nhập với mật khẩu đã set trong `.env` (mặc định: `admin123`)
-3. Quản lý QR codes, modules, và content
-
-### Generate QR Code
-
-Trong admin panel, bạn có thể:
-1. Tạo QR code mới với token tùy chỉnh
-2. Gán modules cho QR code
-3. Generate và download QR code image
-
-## Project Structure
+## 5. Cấu trúc thư mục
 
 ```
-Frontend/
+Project/
 ├── app/
-│   ├── [token]/              # Dynamic route cho QR code
-│   │   ├── menu/
-│   │   ├── room-service/
-│   │   ├── floor-plan/
-│   │   ├── services/
-│   │   ├── information/
-│   │   └── technical/
-│   ├── admin/                 # Admin panel
-│   ├── api/                   # API routes
-│   └── layout.tsx
-├── components/                # React components
-├── lib/                       # Utilities
-│   ├── prisma.ts
-│   ├── qr-auth.ts
-│   └── admin-auth.ts
-├── prisma/
-│   ├── schema.prisma
-│   └── seed.ts
-└── public/                    # Static files
+│   ├── [token]/                # Vùng khách hàng (Menu, Dịch vụ, Sơ đồ, Góp ý)
+│   │   └── feedback/           # Form đánh giá trải nghiệm dịch vụ
+│   ├── admin/                  # Vùng nội bộ nhân viên
+│   │   ├── (content)/          # Quản trị CMS (Menu, Services, Floor plans, QR)
+│   │   ├── (analytics)/        # Thống kê lượt xem
+│   │   ├── documents/          # Kho tài liệu nội bộ (bảo mật)
+│   │   ├── feedback/           # Hộp thư phản hồi khách hàng & xử lý
+│   │   ├── users/              # Quản lý tài khoản & phân quyền
+│   │   ├── audit/              # Nhật ký truy cập & hành động
+│   │   └── account/            # Thông tin cá nhân & đổi mật khẩu
+│   ├── api/
+│   │   ├── auth/               # Đăng nhập, đăng xuất, đổi mật khẩu
+│   │   ├── internal/           # API nội bộ (Documents, Feedback, Users)
+│   │   └── public/             # API công khai (Gửi feedback)
+│   └── login/                  # Trang đăng nhập nội bộ
+├── lib/
+│   ├── auth/                   # Lõi bảo mật: Sessions, Permissions, Guard, Password
+│   ├── storage.ts              # Quản lý lưu trữ tài liệu riêng tư ngoài public/
+│   ├── feedback.ts             # Bộ lọc & phân quyền dữ liệu phản hồi
+│   ├── documents.ts            # Phân quyền tài liệu theo phòng ban
+│   └── rate-limit.ts           # Chống brute-force & spam
+├── storage/                    # Thư mục lưu trữ file tài liệu nội bộ (Private)
+└── scripts/
+    ├── create-user.ts          # CLI tạo tài khoản quản trị
+    ├── migrate-documents.ts    # Di chuyển tài liệu cũ sang storage an toàn
+    └── test-authz.ts           # Kiểm thử phân quyền tự động
 ```
-
-## API Endpoints
-
-### QR Code
-- `GET /api/qr/[token]` - Verify QR token
-- `GET /api/qr` - List all QR codes (admin)
-- `POST /api/qr` - Create QR code (admin)
-- `PUT /api/qr/[id]` - Update QR code (admin)
-- `DELETE /api/qr/[id]` - Delete QR code (admin)
-
-### Modules
-- `GET /api/modules` - List all modules
-- `POST /api/modules` - Create module (admin)
-
-### Content
-- `GET /api/menu` - Get menus
-- `GET /api/services` - Get services
-- `GET /api/information` - Get information
-- `GET /api/technical-documents?token=xxx` - Get technical documents
-
-Xem thêm trong `docs/API.md`
-
-## Development
-
-### Database Migrations
-
-```bash
-# Create migration
-npm run db:migrate
-
-# Apply migrations
-npm run db:push
-```
-
-### Seed Data
-
-```bash
-npm run db:seed
-```
-
-## Documentation
-
-- [Architecture](docs/ARCHITECTURE.md)
-- [API Documentation](docs/API.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Admin Guide](docs/ADMIN_GUIDE.md)
-
-## License
-
-MIT
-
-
-
-
-
-
-
-
-
-
-
-

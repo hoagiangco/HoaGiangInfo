@@ -1,8 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
+import { requirePermission } from '@/lib/auth/guard';
+
+export const dynamic = 'force-dynamic';
 
 export default async function QRCodesPage() {
+  // This page lists every QR token: internal use only (was public before).
+  await requirePermission('content.manage');
+
   const qrCodes = await prisma.qRCode.findMany({
     where: { isActive: true },
     include: {

@@ -1,43 +1,18 @@
-import bcrypt from 'bcryptjs';
-import { cookies } from 'next/headers';
+import 'server-only';
+import { getCurrentUser } from '@/lib/auth/session';
+import { hasPermission } from '@/lib/auth/permissions';
 
-const ADMIN_SESSION_KEY = 'admin_session';
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '';
-
-// In production, hash should be stored in env
-// For now, we'll use a simple comparison
-export async function verifyAdminPassword(password: string): Promise<boolean> {
-  const correctPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  return password === correctPassword;
-}
-
-export async function createAdminSession() {
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_KEY, 'authenticated', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
-}
-
+/**
+ * Backwards-compatible helper used by the existing content-management API
+ * routes (menu, services, QR codes, uploads, import/export, ...).
+ *
+ * It now validates a real, server-side session and requires the
+ * `content.manage` permission (ADMIN / SUPER_ADMIN). The old forgeable
+ * `admin_session=authenticated` cookie and the shared ADMIN_PASSWORD are gone.
+ *
+ * New code should prefer `apiGuard(...)` from '@/lib/auth/guard'.
+ */
 export async function checkAdminSession(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(ADMIN_SESSION_KEY);
-  return session?.value === 'authenticated';
+  const user = await getCurrentUser();
+  return hasPermission(user, 'content.manage');
 }
-
-export async function destroyAdminSession() {
-  const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_SESSION_KEY);
-}
-
-
-
-
-
-
-
-
-
-

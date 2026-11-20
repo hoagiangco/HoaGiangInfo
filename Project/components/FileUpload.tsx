@@ -32,23 +32,39 @@ export default function FileUpload({
     // Check file size
     if (selectedFile.size > maxSize * 1024 * 1024) {
       setError(`File size must be less than ${maxSize}MB`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    // Check file type
-    if (accept && !accept.includes('*')) {
-      const acceptedTypes = accept.split(',').map((t) => t.trim());
-      const fileType = selectedFile.type;
+    // Check file type (supports MIME types like "application/pdf", wildcards like "image/*", and extensions like ".pdf")
+    if (accept) {
+      const acceptedTypes = accept
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+      const fileType = (selectedFile.type || '').toLowerCase();
+      const fileName = selectedFile.name.toLowerCase();
+
       const isValidType = acceptedTypes.some((type) => {
+        if (type === '*' || type === '*/*') {
+          return true;
+        }
+        if (type.startsWith('.')) {
+          return fileName.endsWith(type);
+        }
         if (type.endsWith('/*')) {
           const baseType = type.split('/')[0];
           return fileType.startsWith(baseType + '/');
+        }
+        if (type === 'application/pdf') {
+          return fileType === 'application/pdf' || fileName.endsWith('.pdf');
         }
         return fileType === type;
       });
 
       if (!isValidType) {
-        setError(`File type not allowed. Accepted: ${accept}`);
+        setError(`Định dạng file không hợp lệ. Chỉ chấp nhận: ${accept}`);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
     }

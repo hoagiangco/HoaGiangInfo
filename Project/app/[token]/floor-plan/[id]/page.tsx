@@ -27,9 +27,8 @@ export default async function FloorPlanDetailPage({
   }
 
   return (
-    <div className="mt-[5px]">
-      <InteractiveFloorPlan floorPlan={floorPlan} />
+    <div className="max-w-6xl mx-auto space-y-6">
+      <InteractiveFloorPlan floorPlan={floorPlan} token={params.token} />
     </div>
   );
 }
-

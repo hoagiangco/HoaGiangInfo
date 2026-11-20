@@ -39,14 +39,6 @@ async function main() {
       route: '/information',
       isPublic: false,
     },
-    {
-      name: 'technical',
-      displayName: 'Tài Liệu Kỹ Thuật',
-      description: 'Tài liệu kỹ thuật cho nhân viên',
-      icon: '📋',
-      route: '/technical',
-      isPublic: false,
-    },
   ];
 
   for (const module of modules) {
@@ -57,30 +49,22 @@ async function main() {
     });
   }
 
-  // Create QR codes
+  // Create QR codes with clean 'guest' token
   const guestQR = await prisma.qRCode.upsert({
-    where: { token: 'guest-2024' },
-    update: {},
+    where: { token: 'guest' },
+    update: { isActive: true },
     create: {
       name: 'Guest QR Code',
-      token: 'guest-2024',
-      description: 'QR code cho khách hàng',
+      token: 'guest',
+      description: 'QR code chính cho khách hàng',
       type: 'guest',
       isActive: true,
     },
   });
 
-  const staffQR = await prisma.qRCode.upsert({
-    where: { token: 'staff-2024' },
-    update: {},
-    create: {
-      name: 'Staff QR Code',
-      token: 'staff-2024',
-      description: 'QR code cho nhân viên',
-      type: 'staff',
-      isActive: true,
-    },
-  });
+  // NOTE: there is intentionally no "staff" QR code any more. Internal
+  // documents are only available to logged-in staff accounts in /admin.
+  // Create the first account with: npm run user:create -- --email ... --role SUPER_ADMIN
 
   // Assign modules to guest QR
   const guestModules = ['menu', 'floor-plan', 'services', 'information'];
@@ -101,24 +85,6 @@ async function main() {
         },
       });
     }
-  }
-
-  // Assign all modules to staff QR
-  const allModules = await prisma.module.findMany();
-  for (const module of allModules) {
-    await prisma.qRModule.upsert({
-      where: {
-        qrCodeId_moduleId: {
-          qrCodeId: staffQR.id,
-          moduleId: module.id,
-        },
-      },
-      update: {},
-      create: {
-        qrCodeId: staffQR.id,
-        moduleId: module.id,
-      },
-    });
   }
 
   // Create sample information

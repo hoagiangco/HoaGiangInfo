@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, pages } = body;
+    const { name, description, pages, isActive } = body;
 
     if (!name || !pages || !Array.isArray(pages) || pages.length === 0) {
       return NextResponse.json(
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
         name,
         description: description || null,
         pages,
+        isActive: isActive !== undefined ? isActive : true,
       },
     });
 

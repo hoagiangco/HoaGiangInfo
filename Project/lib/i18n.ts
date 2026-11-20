@@ -15,6 +15,7 @@ export const translations: Record<
   Record<string, string>
 > = {
   vi: {
+    'feedback': 'Góp Ý',
     'welcome': 'Chào mừng đến Resort',
     'select_service': 'Chọn dịch vụ bạn muốn xem',
     'menu': 'Thực Đơn',
@@ -88,6 +89,7 @@ export const translations: Record<
     'inactive': 'Không hoạt động',
   },
   en: {
+    'feedback': 'Feedback',
     'welcome': 'Welcome to Resort',
     'select_service': 'Select the service you want to view',
     'menu': 'Restaurant Menu',
@@ -161,6 +163,7 @@ export const translations: Record<
     'inactive': 'Inactive',
   },
   zh: {
+    'feedback': '反馈',
     'welcome': '欢迎来到度假村',
     'select_service': '选择您要查看的服务',
     'menu': '餐厅菜单',
@@ -234,6 +237,7 @@ export const translations: Record<
     'inactive': '非活跃',
   },
   ja: {
+    'feedback': 'ご意見',
     'welcome': 'リゾートへようこそ',
     'select_service': 'ご覧になりたいサービスを選択してください',
     'menu': 'レストランメニュー',
@@ -307,6 +311,7 @@ export const translations: Record<
     'inactive': '非アクティブ',
   },
   ko: {
+    'feedback': '의견',
     'welcome': '리조트에 오신 것을 환영합니다',
     'select_service': '보고 싶은 서비스를 선택하세요',
     'menu': '레스토랑 메뉴',

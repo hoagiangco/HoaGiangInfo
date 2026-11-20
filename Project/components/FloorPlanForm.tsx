@@ -218,8 +218,8 @@ export default function FloorPlanForm({ floorPlan }: FloorPlanFormProps) {
 
       <div>
         <FileUpload
-          accept={formData.fileType === 'pdf' ? 'application/pdf' : 'image/*'}
-          maxSize={10}
+          accept={formData.fileType === 'pdf' ? '.pdf,application/pdf' : 'image/*'}
+          maxSize={20}
           onFileSelect={async (file) => {
             if (file) {
               setLoading(true);
