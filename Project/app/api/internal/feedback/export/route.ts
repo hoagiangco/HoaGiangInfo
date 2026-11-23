@@ -4,6 +4,7 @@ import { apiGuard } from '@/lib/auth/guard';
 import { audit } from '@/lib/auth/audit';
 import { hasPermission } from '@/lib/auth/permissions';
 import { buildFeedbackWhere, VENUE_LABELS, STATUS_LABELS } from '@/lib/feedback';
+import { formatDateTimeVN, formatIsoDateVN } from '@/lib/locale';
 
 /** Neutralise spreadsheet formula injection and quote for CSV. */
 function csv(value: unknown): string {
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
     const rt = (r.ratings ?? {}) as Record<string, number>;
     lines.push(
       [
-        r.createdAt.toISOString(), VENUE_LABELS[r.venue] ?? r.venue, r.location, r.overallRating,
+        formatDateTimeVN(r.createdAt, { withSeconds: true }), VENUE_LABELS[r.venue] ?? r.venue, r.location, r.overallRating,
         rt.service, rt.food, rt.cleanliness, rt.value, r.npsScore, r.comment,
         STATUS_LABELS[r.status], r.assignee?.name, ...(withPii ? [r.guestName, r.contact] : []),
       ].map(csv).join(',')
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
   return new NextResponse('\uFEFF' + lines.join('\r\n'), {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="feedback-${new Date().toISOString().slice(0, 10)}.csv"`,
+      'Content-Disposition': `attachment; filename="feedback-${formatIsoDateVN()}.csv"`,
       'Cache-Control': 'private, no-store',
     },
   });

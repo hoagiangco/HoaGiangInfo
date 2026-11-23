@@ -18,7 +18,7 @@ export default async function EditFlipbookPage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Chỉnh sửa Flipbook</h1>
+      <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">Chỉnh Sửa Flipbook</h1>
       <FlipbookForm flipbook={flipbook} />
     </div>
   );

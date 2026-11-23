@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { MenuItemTranslationFields } from '@/lib/translations';
 
 export async function PUT(
   request: Request,
@@ -13,13 +15,22 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, description, price, image, category, isAvailable } = body;
+    const { name, description, translations, price, image, category, isAvailable } = body;
 
     const item = await prisma.menuItem.update({
       where: { id: params.id },
       data: {
         name,
         description,
+        ...(translations !== undefined
+          ? {
+              translations: toPrismaTranslations<MenuItemTranslationFields>(translations, [
+                'name',
+                'description',
+                'category',
+              ]),
+            }
+          : {}),
         price: price ? parseFloat(price) : null,
         image,
         category,

@@ -79,3 +79,25 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   await audit({ user, action: 'feedback.update', entity: 'feedback', entityId: fb.id, meta: { status, assigneeId, note: !!note } });
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+  const g = await apiGuard('feedback.manage');
+  if (g.error) return g.error;
+  const { user } = g;
+
+  const existing = await prisma.feedback.findUnique({ where: { id: params.id } });
+  if (!existing) {
+    return NextResponse.json({ error: 'Không tìm thấy phản hồi' }, { status: 404 });
+  }
+
+  await prisma.feedback.delete({ where: { id: existing.id } });
+  await audit({
+    user,
+    action: 'feedback.delete',
+    entity: 'feedback',
+    entityId: existing.id,
+    meta: { venue: existing.venue, overallRating: existing.overallRating },
+  });
+
+  return NextResponse.json({ success: true });
+}

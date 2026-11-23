@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { hasPermission, type AuthUser } from '@/lib/auth/permissions';
+import { parseVNDateBoundary } from '@/lib/locale';
 
 export const VENUE_LABELS: Record<string, string> = {
   hotel: 'Khách sạn / Lưu trú',
@@ -32,9 +33,7 @@ export interface FeedbackFilters {
 }
 
 function parseDate(value: string | undefined, endOfDay = false): Date | undefined {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
-  const d = new Date(`${value}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}`);
-  return isNaN(d.getTime()) ? undefined : d;
+  return parseVNDateBoundary(value, endOfDay);
 }
 
 function parseRating(value: string | undefined): number | undefined {

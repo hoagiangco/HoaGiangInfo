@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { FiPlus, FiMap, FiEdit3, FiLayers } from 'react-icons/fi';
 import { MdApartment } from 'react-icons/md';
+import {
+  getAvailableLanguages,
+  type FloorPlanTranslationFields,
+} from '@/lib/translations';
+import TranslationBadges from '@/components/TranslationBadges';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 
 export default async function FloorPlansPage() {
   const floorPlans = await prisma.floorPlan.findMany({
@@ -75,9 +81,17 @@ export default async function FloorPlansPage() {
                   <div className="w-11 h-11 rounded-xl bg-[#FAF7EE] border border-[#E6D3A7] text-[#866526] flex items-center justify-center">
                     <MdApartment className="w-5 h-5" />
                   </div>
-                  <span className="text-[11px] font-semibold text-[#866526] bg-[#FAF7EE] border border-[#E6D3A7]/60 px-3 py-1 rounded-full">
-                    {plan.rooms.length} phòng
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5 justify-end">
+                    <TranslationBadges
+                      availableLangs={getAvailableLanguages<FloorPlanTranslationFields>(
+                        plan.translations,
+                        ['name', 'description', 'imageUrl']
+                      )}
+                    />
+                    <span className="text-[11px] font-semibold text-[#866526] bg-[#FAF7EE] border border-[#E6D3A7]/60 px-3 py-1 rounded-full">
+                      {plan.rooms.length} phòng
+                    </span>
+                  </div>
                 </div>
 
                 <h2 className="font-serif text-xl font-bold text-slate-900 mb-2">
@@ -99,17 +113,30 @@ export default async function FloorPlansPage() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                 <span className="text-xs text-slate-400 font-mono">
                   {plan.isActive ? 'Đang hoạt động' : 'Tạm ẩn'}
                 </span>
-                <Link
-                  href={`/admin/floor-plans/${plan.id}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#866526] hover:text-[#684B1B] bg-[#FAF7EE] border border-[#E6D3A7]/60 hover:bg-[#F3EAD7] px-3.5 py-2 rounded-xl transition-all"
-                >
-                  <FiEdit3 className="w-3.5 h-3.5" />
-                  <span>Chỉnh sửa sơ đồ</span>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/admin/floor-plans/${plan.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#866526] hover:text-[#684B1B] bg-[#FAF7EE] border border-[#E6D3A7]/60 hover:bg-[#F3EAD7] px-3.5 py-2 rounded-xl transition-all"
+                  >
+                    <FiEdit3 className="w-3.5 h-3.5" />
+                    <span>Chỉnh sửa sơ đồ</span>
+                  </Link>
+                  <AdminDeleteButton
+                    endpoint={`/api/floor-plan/${plan.id}`}
+                    itemName={plan.name}
+                    entityLabel="sơ đồ phòng"
+                    variant="card"
+                    warningNote={
+                      plan.rooms.length > 0
+                        ? `Tất cả ${plan.rooms.length} phòng được định vị trong sơ đồ này cũng sẽ bị xóa.`
+                        : undefined
+                    }
+                  />
+                </div>
               </div>
             </div>
           ))}

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { apiGuard } from '@/lib/auth/guard';
+import { audit } from '@/lib/auth/audit';
 
 export async function GET(
   request: Request,
@@ -75,21 +77,29 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const g = await apiGuard('content.manage');
+  if (g.error) return g.error;
+
   try {
-    const isAdmin = await checkAdminSession();
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const existing = await prisma.qRCode.findUnique({ where: { id: params.id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Không tìm thấy mã QR' }, { status: 404 });
     }
 
-    await prisma.qRCode.delete({
-      where: { id: params.id },
+    await prisma.qRCode.delete({ where: { id: params.id } });
+    await audit({
+      user: g.user,
+      action: 'qr.delete',
+      entity: 'qrCode',
+      entityId: params.id,
+      meta: { name: existing.name, token: existing.token },
     });
 
     return NextResponse.json({ message: 'QR code deleted' });
   } catch (error) {
     console.error('Error deleting QR code:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Không thể xóa mã QR' },
       { status: 500 }
     );
   }

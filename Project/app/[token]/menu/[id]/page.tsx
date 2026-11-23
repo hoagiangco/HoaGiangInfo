@@ -2,7 +2,7 @@ import { checkModuleAccess } from '@/lib/qr-auth';
 import { redirect, notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import MenuDetailView from '@/components/MenuDetailView';
-import { parseMenuBilingual } from '@/lib/bilingual-menu';
+import { resolveMenuTranslations } from '@/lib/translations';
 
 export default async function MenuDetailPage({
   params,
@@ -19,10 +19,7 @@ export default async function MenuDetailPage({
     include: {
       items: {
         where: { isAvailable: true },
-        orderBy: [
-          { category: 'asc' },
-          { name: 'asc' },
-        ],
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
       },
       flipbook: true,
     },
@@ -32,23 +29,90 @@ export default async function MenuDetailPage({
     notFound();
   }
 
-  const bilingual = parseMenuBilingual(menu.description);
-  let flipbookEn: { id: string; name: string; pages: string[] } | null = null;
+  const resolved = resolveMenuTranslations(menu.description, menu.translations);
+  const flipbookEnId = resolved.translations.en?.flipbookId || null;
+  const flipbookZhId = resolved.translations.zh?.flipbookId || null;
 
-  if (bilingual.flipbookEnId) {
-    flipbookEn = await prisma.flipbook.findUnique({
-      where: { id: bilingual.flipbookEnId },
-      select: { id: true, name: true, pages: true },
-    });
+  const extraFlipbookIds = Array.from(
+    new Set([flipbookEnId, flipbookZhId].filter(Boolean) as string[])
+  );
+
+  const extraFlipbooks = extraFlipbookIds.length
+    ? await prisma.flipbook.findMany({
+        where: { id: { in: extraFlipbookIds }, isActive: true },
+        select: { id: true, name: true, pages: true },
+      })
+    : [];
+
+  const flipbookMap = new Map(
+    extraFlipbooks
+      .filter((fb) => fb.pages.length > 0)
+      .map((fb) => [fb.id, fb])
+  );
+
+  const activeViFlipbook =
+    menu.flipbook && menu.flipbook.isActive && menu.flipbook.pages.length > 0
+      ? {
+          id: menu.flipbook.id,
+          name: menu.flipbook.name,
+          pages: menu.flipbook.pages,
+        }
+      : null;
+  const activeEnFlipbook = flipbookEnId
+    ? flipbookMap.get(flipbookEnId) ?? null
+    : null;
+  const activeZhFlipbook = flipbookZhId
+    ? flipbookMap.get(flipbookZhId) ?? null
+    : null;
+
+  const hasLinkedFlipbook = Boolean(
+    menu.fileType === 'flipbook' ||
+      menu.flipbookId ||
+      flipbookEnId ||
+      flipbookZhId
+  );
+  const hasActiveFlipbook = Boolean(
+    activeViFlipbook || activeEnFlipbook || activeZhFlipbook
+  );
+  const hasAnyFile = Boolean(
+    menu.fileUrl ||
+      resolved.translations.en?.fileUrl ||
+      resolved.translations.zh?.fileUrl
+  );
+
+  // If this menu relies solely on Flipbook(s) and all of them are locked/unavailable, do not expose it
+  if (
+    hasLinkedFlipbook &&
+    !hasActiveFlipbook &&
+    menu.items.length === 0 &&
+    !hasAnyFile
+  ) {
+    notFound();
   }
 
   const enrichedMenu = {
-    ...menu,
-    description: bilingual.descriptionVi || null,
-    nameEn: bilingual.nameEn || null,
-    descriptionEn: bilingual.descriptionEn || null,
-    fileUrlEn: bilingual.fileUrlEn || null,
-    flipbookEn,
+    id: menu.id,
+    name: menu.name,
+    description: resolved.descriptionVi || null,
+    translations: resolved.translations,
+    fileUrl: menu.fileUrl,
+    fileType: hasActiveFlipbook ? menu.fileType : menu.fileType === 'flipbook' ? null : menu.fileType,
+    flipbookId: activeViFlipbook ? menu.flipbookId : null,
+    flipbook: activeViFlipbook,
+    flipbooksByLang: {
+      en: activeEnFlipbook,
+      zh: activeZhFlipbook,
+    },
+    items: menu.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      translations: item.translations,
+      price: item.price,
+      image: item.image,
+      category: item.category,
+      isAvailable: item.isAvailable,
+    })),
   };
 
   return (

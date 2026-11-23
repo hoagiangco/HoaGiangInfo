@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { RoomTranslationFields } from '@/lib/translations';
 
 export async function GET(
   request: Request,
@@ -36,7 +38,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { number, type, description, x, y, width, height } = body;
+    const { number, type, description, translations, x, y, width, height } = body;
 
     const room = await prisma.room.update({
       where: { id: params.id },
@@ -44,6 +46,13 @@ export async function PUT(
         number,
         type: type || 'standard',
         description,
+        ...(translations !== undefined
+          ? {
+              translations: toPrismaTranslations<RoomTranslationFields>(translations, [
+                'description',
+              ]),
+            }
+          : {}),
         x: x ? parseFloat(x) : null,
         y: y ? parseFloat(y) : null,
         width: width ? parseFloat(width) : null,

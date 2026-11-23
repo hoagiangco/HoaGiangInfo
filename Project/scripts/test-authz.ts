@@ -151,7 +151,7 @@ async function live(base: string) {
   console.log(`Live probe of ${base} (anonymous customer)`);
   const forged = { Cookie: 'admin_session=authenticated; hg_session=forged' };
 
-  const deniedPages = ['/admin', '/admin/documents', '/admin/feedback', '/admin/users', '/admin/audit', '/admin/qr-codes'];
+  const deniedPages = ['/admin', '/admin/documents', '/admin/feedback', '/admin/users', '/admin/audit', '/admin/qr-codes', '/admin/footer'];
   for (const p of deniedPages) {
     await test(`GET ${p} redirects to /login`, async () => {
       for (const headers of [{}, forged]) {
@@ -176,6 +176,16 @@ async function live(base: string) {
     ['POST', '/api/menu'],
     ['POST', '/api/upload/image'],
     ['POST', '/api/import'],
+    ['PUT', '/api/footer'],
+    ['DELETE', '/api/menu/x'],
+    ['DELETE', '/api/flipbook/x'],
+    ['DELETE', '/api/services/x'],
+    ['DELETE', '/api/information/x'],
+    ['DELETE', '/api/floor-plan/x'],
+    ['DELETE', '/api/modules/x'],
+    ['DELETE', '/api/qr/x'],
+    ['DELETE', '/api/internal/feedback/x'],
+    ['DELETE', '/api/internal/users/x'],
   ];
   for (const [method, p] of deniedApis) {
     await test(`${method} ${p} -> 401/403`, async () => {

@@ -13,6 +13,7 @@
     "db:seed": "npm --prefix Project run db:seed",
     "user:create": "npm --prefix Project run user:create --",
     "docs:migrate": "npm --prefix Project run docs:migrate",
+    "i18n:backfill": "npm --prefix Project run i18n:backfill",
     "test:authz": "npm --prefix Project run test:authz"
   }
 }

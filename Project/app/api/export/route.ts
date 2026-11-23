@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const isAdmin = await checkAdminSession();
@@ -46,12 +48,24 @@ export async function GET(request: Request) {
       data.technicalDocuments = await prisma.technicalDocument.findMany();
     }
 
+    if (type === 'all' || type === 'modules') {
+      data.modules = await prisma.module.findMany();
+    }
+
+    if (type === 'all' || type === 'flipbooks') {
+      data.flipbooks = await prisma.flipbook.findMany();
+    }
+
     if (type === 'all' || type === 'floor-plans') {
       data.floorPlans = await prisma.floorPlan.findMany({
         include: {
           rooms: true,
         },
       });
+    }
+
+    if (type === 'all' || type === 'settings') {
+      data.siteSettings = await prisma.siteSetting.findMany();
     }
 
     return NextResponse.json(data, {

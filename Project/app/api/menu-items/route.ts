@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { MenuItemTranslationFields } from '@/lib/translations';
 
 export async function GET(request: Request) {
   try {
@@ -30,13 +32,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { menuId, name, description, price, image, category } = body;
+    const { menuId, name, description, translations, price, image, category } = body;
 
     const item = await prisma.menuItem.create({
       data: {
         menuId,
         name,
         description,
+        translations: toPrismaTranslations<MenuItemTranslationFields>(translations, [
+          'name',
+          'description',
+          'category',
+        ]),
         price: price ? parseFloat(price) : null,
         image,
         category,

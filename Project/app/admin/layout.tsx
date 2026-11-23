@@ -1,6 +1,7 @@
 import AdminSidebar from '@/components/AdminSidebar';
 import { requireUser } from '@/lib/auth/guard';
 import { permissionsOf } from '@/lib/auth/permissions';
+import { getFooterConfig } from '@/lib/footer-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,13 +11,17 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   // Every page under /admin requires a valid server-side session.
-  const user = await requireUser();
+  const [user, footerConfig] = await Promise.all([
+    requireUser(),
+    getFooterConfig(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800">
       <AdminSidebar
         user={{ name: user.name, email: user.email, role: user.role }}
         permissions={permissionsOf(user.role)}
+        branding={footerConfig.branding}
       />
       <div className="ml-72 min-h-screen flex flex-col">
         {/* Top Header Bar */}

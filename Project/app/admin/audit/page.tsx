@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth/guard';
+import { formatDateTimeVN, formatNumberVN } from '@/lib/locale';
 import { FiShield, FiFilter, FiActivity } from 'react-icons/fi';
 
 const PAGE_SIZE = 50;
@@ -53,6 +54,7 @@ export default async function AuditPage({
           <option value="auth.">Xác thực & Mật khẩu (auth.*)</option>
           <option value="document.">Tài liệu nội bộ (document.*)</option>
           <option value="feedback.">Xử lý phản hồi (feedback.*)</option>
+          <option value="footer.">Cấu hình Footer (footer.*)</option>
           <option value="user.">Quản trị người dùng (user.*)</option>
         </select>
         <button className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-xl transition-colors">
@@ -85,7 +87,7 @@ export default async function AuditPage({
                 logs.map((l) => (
                   <tr key={l.id} className="hover:bg-amber-50/20 transition-colors">
                     <td className="px-6 py-3 whitespace-nowrap text-xs text-slate-500 font-mono">
-                      {l.createdAt.toLocaleString('vi-VN')}
+                      {formatDateTimeVN(l.createdAt, { withSeconds: true })}
                     </td>
                     <td className="px-6 py-3 text-xs font-semibold text-slate-900">
                       {l.userEmail || <span className="text-slate-400 italic">Hệ thống</span>}
@@ -111,7 +113,7 @@ export default async function AuditPage({
           </table>
         </div>
       </div>
-      <p className="text-xs text-slate-400 text-center">Trang {page} / {pages} · Tổng cộng {total} sự kiện kiểm toán</p>
+      <p className="text-xs text-slate-400 text-center">Trang {page} / {pages} · Tổng cộng {formatNumberVN(total)} sự kiện kiểm toán (giờ Việt Nam, GMT+7)</p>
     </div>
   );
 }

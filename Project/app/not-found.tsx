@@ -1,33 +1,29 @@
+'use client';
+
 import Link from 'next/link';
+import { useLanguage } from '@/components/LanguageProvider';
+import { getTranslation } from '@/lib/i18n';
 
 export default function NotFound() {
+  const { language } = useLanguage();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-100">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-          Trang không tìm thấy
+    <div className="min-h-screen flex items-center justify-center bg-[#F3EFE6] px-4">
+      <div className="text-center max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border border-[#CFC3AC] shadow-sm p-8 sm:p-10">
+        <h1 className="font-serif text-6xl font-bold text-[#0F172A] mb-2">404</h1>
+        <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          {getTranslation(language, 'not_found_title')}
         </h2>
-        <p className="text-gray-600 mb-8">
-          QR code không hợp lệ hoặc trang không tồn tại
+        <p className="text-slate-700 text-sm mb-7 leading-relaxed">
+          {getTranslation(language, 'not_found_desc')}
         </p>
         <Link
           href="/"
-          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+          className="inline-flex items-center justify-center bg-[#0F172A] text-[#E8CA7A] px-6 h-11 rounded-xl text-xs font-extrabold uppercase tracking-wider hover:bg-slate-800 transition-all shadow-sm"
         >
-          Về trang chủ
+          {getTranslation(language, 'back_to_home')}
         </Link>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-

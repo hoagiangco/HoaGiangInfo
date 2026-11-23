@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth/guard';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, canEditDocument } from '@/lib/auth/permissions';
 import { DOC_CATEGORIES, VISIBILITY_LABELS, documentVisibilityWhere } from '@/lib/documents';
-import { FiPlus, FiFileText, FiSearch, FiFilter, FiLock, FiUsers } from 'react-icons/fi';
+import { FiPlus, FiFileText, FiSearch, FiFilter, FiLock, FiUsers, FiEdit3 } from 'react-icons/fi';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 
 export default async function DocumentsPage({
   searchParams,
@@ -117,18 +118,22 @@ export default async function DocumentsPage({
               </div>
 
               <ul className="divide-y divide-slate-100">
-                {docs.map((d) => (
-                  <li key={d.id}>
-                    <Link
-                      href={`/admin/documents/${d.id}`}
+                {docs.map((d) => {
+                  const canEdit = canEditDocument(user, d);
+                  return (
+                    <li
+                      key={d.id}
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-amber-50/30 transition-colors gap-3"
                     >
-                      <div className="flex items-start space-x-3.5 min-w-0">
+                      <Link
+                        href={`/admin/documents/${d.id}`}
+                        className="flex items-start space-x-3.5 min-w-0 flex-1"
+                      >
                         <div className="w-10 h-10 rounded-xl bg-[#FAF7EE] text-[#866526] border border-[#E6D3A7] flex items-center justify-center shrink-0 text-sm mt-0.5">
                           <FiFileText className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 text-sm flex items-center gap-2">
+                          <p className="font-semibold text-slate-900 text-sm flex items-center gap-2 hover:text-[#866526] transition-colors">
                             <span>{d.title}</span>
                             {!d.isActive && (
                               <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-normal">
@@ -140,9 +145,9 @@ export default async function DocumentsPage({
                             <p className="text-xs text-slate-500 mt-1 line-clamp-1">{d.description}</p>
                           )}
                         </div>
-                      </div>
+                      </Link>
 
-                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center text-xs">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-center text-xs">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] border border-slate-200">
                           <FiUsers className="w-3 h-3 text-slate-400" />
                           <span>{VISIBILITY_LABELS[d.visibility]}</span>
@@ -152,10 +157,32 @@ export default async function DocumentsPage({
                             📄 {d.fileName}
                           </span>
                         )}
+                        {canEdit && (
+                          <>
+                            <Link
+                              href={`/admin/documents/${d.id}?edit=1`}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-[#866526] hover:text-[#684B1B] bg-[#FAF7EE] border border-[#E6D3A7]/60 hover:bg-[#F3EAD7] px-2.5 py-1.5 rounded-lg transition-all"
+                            >
+                              <FiEdit3 className="w-3.5 h-3.5" />
+                              <span>Sửa</span>
+                            </Link>
+                            <AdminDeleteButton
+                              endpoint={`/api/internal/documents/${d.id}`}
+                              itemName={d.title}
+                              entityLabel="tài liệu"
+                              variant="table"
+                              warningNote={
+                                d.fileName
+                                  ? `Tệp đính kèm "${d.fileName}" cũng sẽ bị xóa khỏi máy chủ.`
+                                  : undefined
+                              }
+                            />
+                          </>
+                        )}
                       </div>
-                    </Link>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { STATUS_LABELS } from '@/lib/feedback';
+import AdminDeleteButton from './AdminDeleteButton';
 
 interface Props {
   id: string;
@@ -67,9 +68,22 @@ export default function FeedbackManagePanel({ id, status, assigneeId, canAssign,
         <label className="block text-sm text-gray-600 mb-1">Ghi chú nội bộ</label>
         <textarea className={field} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
-      <button onClick={save} disabled={loading} className="bg-primary-600 text-white px-5 py-2 rounded-lg disabled:bg-gray-400">
-        {loading ? 'Đang lưu...' : 'Lưu'}
-      </button>
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+        <button onClick={save} disabled={loading} className="bg-primary-600 text-white px-5 py-2 rounded-lg disabled:bg-gray-400">
+          {loading ? 'Đang lưu...' : 'Lưu'}
+        </button>
+        {canAssign && (
+          <AdminDeleteButton
+            endpoint={`/api/internal/feedback/${id}`}
+            itemName={`phản hồi #${id.slice(-6)}`}
+            entityLabel="phản hồi"
+            redirectTo="/admin/feedback"
+            variant="table"
+            buttonLabel="Xóa phản hồi"
+            disabled={loading}
+          />
+        )}
+      </div>
     </div>
   );
 }

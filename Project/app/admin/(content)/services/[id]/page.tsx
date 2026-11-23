@@ -17,7 +17,7 @@ export default async function EditServicePage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Chỉnh sửa Service</h1>
+      <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">Chỉnh Sửa Dịch Vụ</h1>
       <ServiceForm service={service} />
     </div>
   );

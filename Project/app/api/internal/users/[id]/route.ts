@@ -93,3 +93,43 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   });
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+  const g = await apiGuard('users.manage');
+  if (g.error) return g.error;
+  const { user: actor } = g;
+
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target || !isRole(target.role)) {
+    return NextResponse.json({ error: 'Không tìm thấy tài khoản' }, { status: 404 });
+  }
+
+  if (actor.id === target.id) {
+    return NextResponse.json({ error: 'Không thể tự xóa tài khoản của chính mình' }, { status: 400 });
+  }
+
+  if (!canManageRole(actor.role, target.role)) {
+    return NextResponse.json({ error: 'Bạn không có quyền xóa tài khoản này' }, { status: 403 });
+  }
+
+  if (target.role === 'SUPER_ADMIN') {
+    const others = await prisma.user.count({
+      where: { role: 'SUPER_ADMIN', isActive: true, id: { not: target.id } },
+    });
+    if (others === 0) {
+      return NextResponse.json({ error: 'Phải còn ít nhất một Super Admin hoạt động' }, { status: 400 });
+    }
+  }
+
+  await revokeAllSessions(target.id);
+  await prisma.user.delete({ where: { id: target.id } });
+
+  await audit({
+    user: actor,
+    action: 'user.delete',
+    entity: 'user',
+    entityId: target.id,
+    meta: { email: target.email, role: target.role },
+  });
+  return NextResponse.json({ success: true });
+}

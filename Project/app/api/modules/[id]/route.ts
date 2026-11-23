@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { apiGuard } from '@/lib/auth/guard';
+import { audit } from '@/lib/auth/audit';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { ModuleTranslationFields } from '@/lib/translations';
 
 export async function GET(
   request: Request,
@@ -41,7 +45,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, displayName, description, icon, route, isPublic } = body;
+    const { name, displayName, description, translations, icon, route, isPublic } = body;
 
     const module = await prisma.module.update({
       where: { id: params.id },
@@ -49,6 +53,14 @@ export async function PUT(
         name,
         displayName,
         description,
+        ...(translations !== undefined
+          ? {
+              translations: toPrismaTranslations<ModuleTranslationFields>(translations, [
+                'displayName',
+                'description',
+              ]),
+            }
+          : {}),
         icon,
         route,
         isPublic: isPublic ?? false,
@@ -69,21 +81,29 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const g = await apiGuard('content.manage');
+  if (g.error) return g.error;
+
   try {
-    const isAdmin = await checkAdminSession();
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const existing = await prisma.module.findUnique({ where: { id: params.id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Không tìm thấy module' }, { status: 404 });
     }
 
-    await prisma.module.delete({
-      where: { id: params.id },
+    await prisma.module.delete({ where: { id: params.id } });
+    await audit({
+      user: g.user,
+      action: 'module.delete',
+      entity: 'module',
+      entityId: params.id,
+      meta: { name: existing.name, displayName: existing.displayName },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting module:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Không thể xóa module' },
       { status: 500 }
     );
   }

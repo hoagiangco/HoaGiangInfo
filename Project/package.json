@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "user:create": "tsx scripts/create-user.ts",
     "docs:migrate": "tsx scripts/migrate-documents.ts",
+    "i18n:backfill": "tsx scripts/backfill-translations.ts",
     "test:authz": "tsx scripts/test-authz.ts",
     "qr:generate": "tsx scripts/generate-qr-codes.ts",
     "cleanup:room-service": "tsx scripts/remove-room-service.ts",

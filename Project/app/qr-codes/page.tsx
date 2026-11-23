@@ -32,11 +32,11 @@ export default async function QRCodesPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            QR Codes
+          <h1 className="font-serif text-4xl font-bold text-slate-900 mb-4">
+            Danh Sách Mã QR
           </h1>
-          <p className="text-gray-600">
-            Quét QR code để truy cập thông tin resort
+          <p className="text-slate-600">
+            Quét mã QR để truy cập thông tin Hòa Bình Rạch Giá Resort
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default async function QRCodesPage() {
                 className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
               >
                 <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                  <h2 className="font-serif text-2xl font-semibold text-slate-900 mb-2">
                     {qr.name}
                   </h2>
                   {qr.description && (
@@ -83,8 +83,8 @@ export default async function QRCodesPage() {
                       </Link>
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-semibold">Modules:</span>{' '}
-                      {qr.modules.length} modules
+                      <span className="font-semibold">Phân hệ:</span>{' '}
+                      {qr.modules.length} phân hệ
                     </p>
                   </div>
 
@@ -94,20 +94,20 @@ export default async function QRCodesPage() {
                       download={`qr-${qr.token}.png`}
                       className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                     >
-                      Download QR
+                      Tải Mã QR
                     </a>
                     <Link
                       href={qrUrl}
                       target="_blank"
                       className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                     >
-                      Test Link
+                      Mở Liên Kết
                     </Link>
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <p className="text-xs text-gray-500 mb-2">
-                      Modules có thể truy cập:
+                      Phân hệ có thể truy cập:
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {qr.modules.map((qm) => (

@@ -3,7 +3,7 @@ import FlipbookForm from '@/components/FlipbookForm';
 export default function NewFlipbookPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Tạo Flipbook mới</h1>
+      <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">Tạo Flipbook Mới</h1>
       <FlipbookForm />
     </div>
   );

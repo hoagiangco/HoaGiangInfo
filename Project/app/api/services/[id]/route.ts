@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { apiGuard } from '@/lib/auth/guard';
+import { audit } from '@/lib/auth/audit';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { ServiceTranslationFields } from '@/lib/translations';
 
 export async function GET(
   request: Request,
@@ -36,7 +40,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, type, description, images, hours, location, isActive } = body;
+    const { name, type, description, translations, images, hours, location, isActive } = body;
 
     const service = await prisma.service.update({
       where: { id: params.id },
@@ -44,6 +48,16 @@ export async function PUT(
         name,
         type,
         description,
+        ...(translations !== undefined
+          ? {
+              translations: toPrismaTranslations<ServiceTranslationFields>(translations, [
+                'name',
+                'description',
+                'hours',
+                'location',
+              ]),
+            }
+          : {}),
         images: images || [],
         hours,
         location,
@@ -65,21 +79,29 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const g = await apiGuard('content.manage');
+  if (g.error) return g.error;
+
   try {
-    const isAdmin = await checkAdminSession();
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const existing = await prisma.service.findUnique({ where: { id: params.id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Không tìm thấy dịch vụ' }, { status: 404 });
     }
 
-    await prisma.service.delete({
-      where: { id: params.id },
+    await prisma.service.delete({ where: { id: params.id } });
+    await audit({
+      user: g.user,
+      action: 'service.delete',
+      entity: 'service',
+      entityId: params.id,
+      meta: { name: existing.name, type: existing.type },
     });
 
     return NextResponse.json({ message: 'Service deleted' });
   } catch (error) {
     console.error('Error deleting service:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Không thể xóa dịch vụ' },
       { status: 500 }
     );
   }

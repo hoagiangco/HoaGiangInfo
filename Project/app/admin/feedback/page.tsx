@@ -9,6 +9,8 @@ import {
   type FeedbackFilters,
 } from '@/lib/feedback';
 import { FiDownload, FiMessageSquare, FiStar, FiTrendingUp, FiSearch, FiFilter } from 'react-icons/fi';
+import { formatDateTimeVN, formatNumberVN } from '@/lib/locale';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 
 const PAGE_SIZE = 25;
 
@@ -26,6 +28,7 @@ export default async function FeedbackListPage({
   const user = await requirePermission('feedback.read', 'feedback.read.assigned');
   const seesAll = hasPermission(user, 'feedback.read');
   const canExport = hasPermission(user, 'feedback.export');
+  const canManage = hasPermission(user, 'feedback.manage');
 
   const where = buildFeedbackWhere(user, searchParams);
   const page = Math.max(1, Number(searchParams.page) || 1);
@@ -100,7 +103,7 @@ export default async function FeedbackListPage({
           </div>
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Lượt phản hồi (30 ngày)</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">{recent.length}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">{formatNumberVN(recent.length)}</p>
           </div>
         </div>
 
@@ -184,6 +187,7 @@ export default async function FeedbackListPage({
                   <th className="px-6 py-4">Nội Dung Nhận Xét</th>
                   <th className="px-6 py-4">Trạng Thái</th>
                   <th className="px-6 py-4">Người Xử Lý</th>
+                  {canManage && <th className="px-6 py-4 text-right">Thao Tác</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -193,7 +197,7 @@ export default async function FeedbackListPage({
                     <tr key={f.id} className="hover:bg-amber-50/30 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-xs">
                         <Link href={`/admin/feedback/${f.id}`} className="font-semibold text-[#866526] hover:underline">
-                          {f.createdAt.toLocaleString('vi-VN')}
+                          {formatDateTimeVN(f.createdAt)}
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -226,6 +230,16 @@ export default async function FeedbackListPage({
                           <span className="text-slate-400 italic">Chưa giao</span>
                         )}
                       </td>
+                      {canManage && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <AdminDeleteButton
+                            endpoint={`/api/internal/feedback/${f.id}`}
+                            itemName={`${VENUE_LABELS[f.venue] ?? f.venue} (${f.overallRating}★)`}
+                            entityLabel="phản hồi"
+                            variant="table"
+                          />
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

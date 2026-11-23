@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { formatIsoDateVN } from '@/lib/locale';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -10,10 +13,10 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get('days') || '30');
+    const parsedDays = parseInt(searchParams.get('days') || '30', 10);
+    const days = Number.isFinite(parsedDays) && parsedDays > 0 ? Math.min(parsedDays, 3650) : 30;
 
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     // QR Code scans
     const totalScans = await prisma.qRCodeScan.count({
@@ -49,24 +52,39 @@ export async function GET(request: Request) {
     const scansWithNames = scansByQR.map((scan) => {
       const qrCode = qrCodes.find((q) => q.id === scan.qrCodeId);
       return {
-        qrCodeName: qrCode?.name || 'Unknown',
+        qrCodeName: qrCode?.name || 'Không xác định',
         qrCodeToken: qrCode?.token || '',
         count: scan._count.id,
       };
     });
 
-    // Scans by day
-    const scansByDay = await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
-      SELECT 
-        DATE(scanned_at) as date,
-        COUNT(*)::int as count
-      FROM "QRCodeScan"
-      WHERE scanned_at >= ${startDate}
-      GROUP BY DATE(scanned_at)
-      ORDER BY date ASC
-    `;
+    // Group scans by calendar day in Vietnam timezone (Asia/Ho_Chi_Minh)
+    const rawScans = await prisma.qRCodeScan.findMany({
+      where: {
+        scannedAt: {
+          gte: startDate,
+        },
+      },
+      select: {
+        scannedAt: true,
+      },
+      orderBy: {
+        scannedAt: 'asc',
+      },
+    });
 
-    // Most accessed modules (based on scans)
+    const scansByDayMap = new Map<string, number>();
+    for (const scan of rawScans) {
+      const dayKey = formatIsoDateVN(scan.scannedAt);
+      scansByDayMap.set(dayKey, (scansByDayMap.get(dayKey) ?? 0) + 1);
+    }
+
+    const scansByDay = Array.from(scansByDayMap.entries()).map(([date, count]) => ({
+      date,
+      count,
+    }));
+
+    // Most accessed modules (based on QR assignments)
     const moduleAccess = await prisma.qRModule.groupBy({
       by: ['moduleId'],
       _count: {
@@ -83,9 +101,9 @@ export async function GET(request: Request) {
     });
 
     const moduleStats = moduleAccess.map((access) => {
-      const module = modules.find((m) => m.id === access.moduleId);
+      const mod = modules.find((m) => m.id === access.moduleId);
       return {
-        moduleName: module?.displayName || 'Unknown',
+        moduleName: mod?.displayName || 'Không xác định',
         qrCodeCount: access._count.id,
       };
     });
@@ -93,10 +111,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       totalScans,
       scansByQR: scansWithNames,
-      scansByDay: scansByDay.map((s) => ({
-        date: s.date,
-        count: Number(s.count),
-      })),
+      scansByDay,
       moduleStats,
       period: days,
     });
@@ -108,13 +123,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-

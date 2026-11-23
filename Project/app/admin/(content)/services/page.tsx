@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { FiPlus, FiStar, FiEdit3, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { MdSpa, MdFitnessCenter, MdLocalBar, MdPool } from 'react-icons/md';
+import {
+  getAvailableLanguages,
+  type ServiceTranslationFields,
+} from '@/lib/translations';
+import TranslationBadges from '@/components/TranslationBadges';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 
 export default async function ServicesPage() {
   const services = await prisma.service.findMany({
@@ -76,6 +82,7 @@ export default async function ServicesPage() {
               <tr>
                 <th className="px-6 py-4">Tên Dịch Vụ</th>
                 <th className="px-6 py-4">Phân Loại (Type)</th>
+                <th className="px-6 py-4">Ngôn Ngữ</th>
                 <th className="px-6 py-4">Giờ Mở Cửa</th>
                 <th className="px-6 py-4">Trạng Thái</th>
                 <th className="px-6 py-4 text-right">Thao Tác</th>
@@ -91,6 +98,14 @@ export default async function ServicesPage() {
                     <span className="bg-[#FAF7EE] border border-[#E6D3A7]/60 px-2.5 py-1 rounded-md">
                       {service.type}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <TranslationBadges
+                      availableLangs={getAvailableLanguages<ServiceTranslationFields>(
+                        service.translations,
+                        ['name', 'description', 'hours', 'location']
+                      )}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600">
                     {service.hours || 'N/A'}
@@ -108,13 +123,21 @@ export default async function ServicesPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <Link
-                      href={`/admin/services/${service.id}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#866526] hover:text-[#684B1B] bg-[#FAF7EE] border border-[#E6D3A7]/60 hover:bg-[#F3EAD7] px-3 py-1.5 rounded-lg transition-all"
-                    >
-                      <FiEdit3 className="w-3.5 h-3.5" />
-                      <span>Sửa</span>
-                    </Link>
+                    <div className="inline-flex items-center gap-2">
+                      <Link
+                        href={`/admin/services/${service.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#866526] hover:text-[#684B1B] bg-[#FAF7EE] border border-[#E6D3A7]/60 hover:bg-[#F3EAD7] px-3 py-1.5 rounded-lg transition-all"
+                      >
+                        <FiEdit3 className="w-3.5 h-3.5" />
+                        <span>Sửa</span>
+                      </Link>
+                      <AdminDeleteButton
+                        endpoint={`/api/services/${service.id}`}
+                        itemName={service.name}
+                        entityLabel="dịch vụ"
+                        variant="table"
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

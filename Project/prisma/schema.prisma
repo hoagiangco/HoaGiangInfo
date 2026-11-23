@@ -25,16 +25,17 @@ model QRCode {
 }
 
 model Module {
-  id          String    @id @default(cuid())
-  name        String    @unique // "menu", "floor-plan", etc.
-  displayName String
-  description String?
-  icon        String?
-  route       String
-  isPublic    Boolean   @default(false)
-  qrCodes     QRModule[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String     @id @default(cuid())
+  name         String     @unique // "menu", "floor-plan", etc.
+  displayName  String
+  description  String?
+  translations Json?      // { en?: { displayName?, description? }, zh?: { displayName?, description? } }
+  icon         String?
+  route        String
+  isPublic     Boolean    @default(false)
+  qrCodes      QRModule[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model QRModule {
@@ -70,94 +71,106 @@ model TechnicalDocument {
 }
 
 model Menu {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  fileUrl     String?   // PDF, image, or flipbook URL
-  fileType    String?   // "pdf" | "image" | "flipbook"
-  flipbookId  String?
-  flipbook    Flipbook?  @relation(fields: [flipbookId], references: [id], onDelete: SetNull)
-  items       MenuItem[]
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  translations Json?      // { en?: { name?, description?, fileUrl?, flipbookId? }, zh?: { ... } }
+  fileUrl      String?    // PDF, image, or flipbook URL
+  fileType     String?    // "pdf" | "image" | "flipbook"
+  flipbookId   String?
+  flipbook     Flipbook?  @relation(fields: [flipbookId], references: [id], onDelete: SetNull)
+  items        MenuItem[]
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Flipbook {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  pages       String[] // Array of image URLs
-  menus       Menu[]   // Many menus can use the same flipbook
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  translations Json?         // { en?: { name?, description? }, zh?: { name?, description? } }
+  pages        String[]      // Array of image URLs
+  menus        Menu[]        // Many menus can use the same flipbook
+  information  Information[] // Many information items can use the same flipbook
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model MenuItem {
-  id          String   @id @default(cuid())
-  menuId      String
-  menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  price       Float?
-  image       String?
-  category    String?  // "appetizer", "main", "dessert", etc.
-  isAvailable Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  menuId       String
+  menu         Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  translations Json?    // { en?: { name?, description?, category? }, zh?: { ... } }
+  price        Float?
+  image        String?
+  category     String?  // "appetizer", "main", "dessert", etc.
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Service {
-  id          String   @id @default(cuid())
-  name        String
-  type        String   // "gym" | "bar" | "business-center"
-  description String
-  images      String[] // Array of image URLs (PostgreSQL supports arrays)
-  hours       String?
-  location    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  type         String   // "gym" | "bar" | "business-center" | "spa" | "pool" | ...
+  description  String
+  translations Json?    // { en?: { name?, description?, hours?, location? }, zh?: { ... } }
+  images       String[] // Array of image URLs (PostgreSQL supports arrays)
+  hours        String?
+  location     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Information {
-  id          String   @id @default(cuid())
-  category    String   // "wifi" | "phone" | "tv" | "room-info"
-  title       String
-  content     String
-  icon        String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  category     String    // "wifi" | "phone" | "tv" | "room-info" | "guide" | "safety"
+  title        String
+  content      String
+  translations Json?     // { en?: { title?, content?, fileUrl?, flipbookId? }, zh?: { ... } }
+  fileUrl      String?   // PDF or image URL
+  fileType     String?   // "pdf" | "image" | "flipbook"
+  flipbookId   String?
+  flipbook     Flipbook? @relation(fields: [flipbookId], references: [id], onDelete: SetNull)
+  icon         String?
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model FloorPlan {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  imageUrl    String?  // Floor plan image/PDF
-  fileType    String?  // "image" | "pdf"
-  rooms       Room[]
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  translations Json?    // { en?: { name?, description?, imageUrl?, fileType? }, zh?: { ... } }
+  imageUrl     String?  // Floor plan image/PDF
+  fileType     String?  // "image" | "pdf"
+  rooms        Room[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Room {
-  id          String   @id @default(cuid())
-  floorPlanId String
-  floorPlan   FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
-  number      String
-  type        String   // "standard" | "deluxe" | "suite" | "villa"
-  description String?
-  x           Float?   // X coordinate for clickable area (0-100 percentage)
-  y           Float?   // Y coordinate for clickable area (0-100 percentage)
-  width       Float?   // Width percentage
-  height      Float?   // Height percentage
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  floorPlanId  String
+  floorPlan    FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  number       String
+  type         String    // "standard" | "deluxe" | "suite" | "villa"
+  description  String?
+  translations Json?     // { en?: { description? }, zh?: { description? } }
+  x            Float?    // X coordinate for clickable area (0-100 percentage)
+  y            Float?    // Y coordinate for clickable area (0-100 percentage)
+  width        Float?    // Width percentage
+  height       Float?    // Height percentage
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model QRCodeScan {
@@ -286,4 +299,14 @@ model FeedbackEvent {
   createdAt  DateTime @default(now())
 
   @@index([feedbackId])
+}
+
+// ---------------------------------------------------------------------------
+// Site-wide CMS settings (footer, concierge bar, ...)
+// ---------------------------------------------------------------------------
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

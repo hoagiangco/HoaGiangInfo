@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { FiAward, FiLock, FiMail, FiArrowRight } from 'react-icons/fi';
 
 function LoginForm() {
@@ -9,7 +9,6 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -28,8 +27,8 @@ function LoginForm() {
         const next = searchParams.get('next');
         const target =
           next && next.startsWith('/admin') && !next.startsWith('//') ? next : '/admin';
-        router.push(target);
-        router.refresh();
+        window.location.assign(target);
+        return;
       } else {
         const data = await response.json().catch(() => ({}));
         setError(data.error || 'Email hoặc mật khẩu không đúng');

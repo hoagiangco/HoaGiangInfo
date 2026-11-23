@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { RoomTranslationFields } from '@/lib/translations';
 
 export async function GET(request: Request) {
   try {
@@ -30,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { floorPlanId, number, type, description, x, y, width, height } =
+    const { floorPlanId, number, type, description, translations, x, y, width, height } =
       body;
 
     const room = await prisma.room.create({
@@ -39,6 +41,9 @@ export async function POST(request: Request) {
         number,
         type: type || 'standard',
         description,
+        translations: toPrismaTranslations<RoomTranslationFields>(translations, [
+          'description',
+        ]),
         x: x ? parseFloat(x) : null,
         y: y ? parseFloat(y) : null,
         width: width ? parseFloat(width) : null,

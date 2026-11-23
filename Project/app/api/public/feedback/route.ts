@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { verifyQRToken } from '@/lib/qr-auth';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
+import { normalizeLanguage } from '@/lib/i18n';
 
 /**
  * PUBLIC, WRITE-ONLY endpoint used by the guest feedback form.
@@ -30,7 +31,10 @@ const schema = z.object({
   comment: z.string().trim().max(2000).optional(),
   guestName: z.string().trim().max(100).optional(),
   contact: z.string().trim().max(120).optional(),
-  language: z.enum(['vi', 'en', 'zh', 'ja', 'ko']).default('vi'),
+  language: z.preprocess(
+    (v) => (typeof v === 'string' ? normalizeLanguage(v) : 'vi'),
+    z.enum(['vi', 'en', 'zh'])
+  ).default('vi'),
   website: z.string().max(200).optional(), // honeypot
 });
 

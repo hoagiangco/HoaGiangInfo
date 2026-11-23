@@ -17,8 +17,8 @@ export default async function EditModulePage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
-        Chỉnh sửa Module
+      <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">
+        Chỉnh Sửa Phân Hệ
       </h1>
       <ModuleForm module={module} />
     </div>

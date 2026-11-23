@@ -9,6 +9,9 @@ export default async function EditInformationPage({
 }) {
   const information = await prisma.information.findUnique({
     where: { id: params.id },
+    include: {
+      flipbook: true,
+    },
   });
 
   if (!information) {
@@ -17,7 +20,7 @@ export default async function EditInformationPage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Chỉnh sửa Information</h1>
+      <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">Chỉnh Sửa Thông Tin</h1>
       <InformationForm information={information} />
     </div>
   );

@@ -3,9 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-family: var(--font-sans), "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-[#FDFBF7] text-stone-800 antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-[#F3EFE6] text-slate-900 antialiased font-sans;
+  }
+
+  input,
+  select,
+  option,
+  textarea,
+  button {
+    font-family: inherit;
   }
 
   h1, h2, h3, .font-serif {
@@ -17,27 +32,40 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .luxury-gradient-gold {
-    background: linear-gradient(135deg, #B58E38 0%, #8A6925 100%);
+    background: linear-gradient(135deg, #8A641A 0%, #63450D 100%);
   }
 
   .luxury-gradient-dark {
-    background: linear-gradient(180deg, #0B1120 0%, #151F32 100%);
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
   }
 
   .luxury-border-gold {
-    border-color: rgba(181, 142, 56, 0.25);
+    border-color: rgba(110, 78, 18, 0.35);
   }
 
   .luxury-glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .luxury-glass-dark {
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
@@ -63,6 +91,12 @@
 }
 
 /* React Quill & CKEditor Styles */
+.quill-wrapper .ql-container,
+.quill-wrapper .ql-editor,
+.ckeditor-wrapper .ck-content,
+.ckeditor-wrapper .ck-editor__editable {
+  font-family: var(--font-sans), "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
 .quill-wrapper .ql-container {
   min-height: 200px;
   font-size: 14px;
@@ -84,16 +118,43 @@
 .prose table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1rem 0;
+  margin: 0.75rem 0;
 }
 .prose table td,
 .prose table th {
-  border: 1px solid #E6D3A7;
-  padding: 0.75rem;
+  border: 1px solid #CFC3AC;
+  padding: 0.625rem 0.75rem;
   text-align: left;
+  vertical-align: top;
+  color: #0F172A;
 }
 .prose table th {
-  background-color: #FAF7EE;
+  background-color: #0F172A;
+  font-weight: 700;
+  color: #F8FAFC;
+  border-color: #334155;
+}
+.info-rich-content {
+  color: #1E293B;
+}
+.info-rich-content strong {
+  color: #0F172A;
+  font-weight: 700;
+}
+.info-rich-content a {
+  color: #6E4E12;
   font-weight: 600;
-  color: #684B1B;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.info-rich-content table {
+  min-width: 520px;
+  font-size: 0.875rem;
+  background-color: #ffffff;
+}
+.info-rich-content table tr:nth-child(even) td {
+  background-color: #F7F4ED;
+}
+.info-rich-content table tr:hover td {
+  background-color: #EFE8D8;
 }

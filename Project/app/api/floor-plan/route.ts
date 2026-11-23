@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { FloorPlanTranslationFields } from '@/lib/translations';
 
 export async function GET() {
   try {
@@ -31,14 +33,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, imageUrl, fileType } = body;
+    const { name, description, translations, imageUrl, fileType, isActive } = body;
 
     const floorPlan = await prisma.floorPlan.create({
       data: {
         name,
         description,
+        translations: toPrismaTranslations<FloorPlanTranslationFields>(translations, [
+          'name',
+          'description',
+          'imageUrl',
+          'fileType',
+        ]),
         imageUrl,
         fileType,
+        isActive: isActive !== undefined ? isActive : true,
       },
     });
 

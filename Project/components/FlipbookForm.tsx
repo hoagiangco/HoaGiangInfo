@@ -17,6 +17,7 @@ import {
   expandFilesWithPdfConversion,
   PdfConversionProgress,
 } from '@/lib/pdf-to-images';
+import AdminDeleteButton from './AdminDeleteButton';
 
 interface Flipbook {
   id: string;
@@ -34,9 +35,8 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [convertingPdf, setConvertingPdf] = useState(false);
-  const [conversionProgress, setConversionProgress] = useState<PdfConversionProgress | null>(
-    null
-  );
+  const [conversionProgress, setConversionProgress] =
+    useState<PdfConversionProgress | null>(null);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: flipbook?.name || '',
@@ -46,7 +46,6 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
   const [pages, setPages] = useState<string[]>(flipbook?.pages || []);
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
 
-  // Track initial values to detect changes
   const initialFormData = {
     name: flipbook?.name || '',
     description: flipbook?.description || '',
@@ -54,7 +53,6 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
   };
   const initialPages = flipbook?.pages || [];
 
-  // Check if form has changes
   const hasChanges =
     formData.name !== initialFormData.name ||
     formData.description !== initialFormData.description ||
@@ -82,7 +80,6 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
 
       let finalPages = [...pages];
 
-      // If there are new files to upload, upload them first
       if (uploadingFiles.length > 0) {
         const formDataUpload = new FormData();
         uploadingFiles.forEach((file) => {
@@ -103,40 +100,23 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
         finalPages = [...pages, ...uploadResult.pages];
       }
 
-      // If editing existing flipbook
-      if (flipbook) {
-        const response = await fetch(`/api/flipbook/${flipbook.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description || null,
-            pages: finalPages,
-            isActive: formData.isActive,
-          }),
-        });
+      const endpoint = flipbook ? `/api/flipbook/${flipbook.id}` : '/api/flipbook';
+      const method = flipbook ? 'PUT' : 'POST';
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to update flipbook');
-        }
-      } else {
-        // Create new flipbook using already uploaded finalPages
-        const response = await fetch('/api/flipbook', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description || null,
-            pages: finalPages,
-            isActive: formData.isActive,
-          }),
-        });
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          pages: finalPages,
+          isActive: formData.isActive,
+        }),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create flipbook');
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save flipbook');
       }
 
       router.push('/admin/flipbooks');
@@ -151,12 +131,13 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
-    e.target.value = ''; // Reset input immediately
+    e.target.value = '';
     if (files.length === 0) return;
 
     const validFiles = files.filter((file) => {
       const isPDF =
-        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        file.type === 'application/pdf' ||
+        file.name.toLowerCase().endsWith('.pdf');
       const isImage = file.type.startsWith('image/');
       return isPDF || isImage;
     });
@@ -169,9 +150,12 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
     setError('');
     setConvertingPdf(true);
     try {
-      const expandedFiles = await expandFilesWithPdfConversion(validFiles, (progress) => {
-        setConversionProgress(progress);
-      });
+      const expandedFiles = await expandFilesWithPdfConversion(
+        validFiles,
+        (progress) => {
+          setConversionProgress(progress);
+        }
+      );
       setUploadingFiles((prev) => [...prev, ...expandedFiles]);
     } catch (err: any) {
       console.error('Error converting PDF to images:', err);
@@ -203,7 +187,9 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Không thể tải lên các trang ảnh đã tách');
+        throw new Error(
+          errorData.error || 'Không thể tải lên các trang ảnh đã tách'
+        );
       }
 
       const uploadResult = await uploadResponse.json();
@@ -240,7 +226,10 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
     if (index === 0) return;
     setPages((prev) => {
       const newPages = [...prev];
-      [newPages[index - 1], newPages[index]] = [newPages[index], newPages[index - 1]];
+      [newPages[index - 1], newPages[index]] = [
+        newPages[index],
+        newPages[index - 1],
+      ];
       return newPages;
     });
   }
@@ -249,7 +238,10 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
     if (index === pages.length - 1) return;
     setPages((prev) => {
       const newPages = [...prev];
-      [newPages[index], newPages[index + 1]] = [newPages[index + 1], newPages[index]];
+      [newPages[index], newPages[index + 1]] = [
+        newPages[index + 1],
+        newPages[index],
+      ];
       return newPages;
     });
   }
@@ -262,14 +254,22 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
         </div>
       )}
 
+      <div className="bg-[#FAF7EE] border border-[#E6D3A7] text-[#684B1B] px-4 py-3 rounded-xl text-xs sm:text-sm leading-relaxed">
+        Flipbook là kho tài liệu ảnh/PDF dùng làm nguồn gắn theo từng ngôn ngữ
+        (VN / EN / 中文) trong <strong>Thực đơn</strong> hoặc{' '}
+        <strong>Thông tin cần biết</strong>. Tên và ghi chú bên dưới chỉ phục
+        vụ quản lý nội bộ, không hiển thị lên trang khách.
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tên Flipbook <span className="text-red-500">*</span>
+          Tên Flipbook (quản lý nội bộ) <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="Ví dụ: Menu Cơm Niêu - Tiếng Anh (EN)"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           required
         />
@@ -277,11 +277,14 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Mô tả
+          Mô tả / Ghi chú nội bộ
         </label>
         <textarea
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
+          placeholder="Ghi chú ngôn ngữ hoặc phiên bản tài liệu để dễ chọn khi gắn vào Thực đơn / Thông tin..."
           rows={3}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
@@ -331,7 +334,9 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
             </div>
             <span className="font-mono font-bold">
               {Math.round(
-                (conversionProgress.currentPage / conversionProgress.totalPages) * 100
+                (conversionProgress.currentPage /
+                  conversionProgress.totalPages) *
+                  100
               )}
               %
             </span>
@@ -342,7 +347,8 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
-                {uploadingFiles.length} trang mới đã sẵn sàng (sẽ được tải lên khi bấm Lưu)
+                {uploadingFiles.length} trang mới đã sẵn sàng (sẽ được tải lên
+                khi bấm Lưu)
               </p>
               <button
                 type="button"
@@ -383,7 +389,9 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
                   <p className="text-xs font-medium text-gray-700 mt-1.5 truncate">
                     Trang mới #{index + 1}
                   </p>
-                  <p className="text-[11px] text-gray-400 truncate">{file.name}</p>
+                  <p className="text-[11px] text-gray-400 truncate">
+                    {file.name}
+                  </p>
                 </div>
               ))}
             </div>
@@ -432,11 +440,15 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
                         <button
                           type="button"
                           disabled={convertingPdf}
-                          onClick={() => handleConvertExistingPdfPage(index, pageUrl)}
+                          onClick={() =>
+                            handleConvertExistingPdfPage(index, pageUrl)
+                          }
                           className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#866526] hover:bg-[#684B1B] text-white px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
                         >
                           <FiRefreshCw
-                            className={`w-3.5 h-3.5 ${convertingPdf ? 'animate-spin' : ''}`}
+                            className={`w-3.5 h-3.5 ${
+                              convertingPdf ? 'animate-spin' : ''
+                            }`}
                           />
                           <span>Tách PDF này thành các trang ảnh ngay</span>
                         </button>
@@ -484,20 +496,32 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
         </div>
       )}
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isActive"
-          checked={formData.isActive}
-          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-        />
-        <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-          Kích hoạt flipbook này
-        </label>
+      <div className="space-y-1.5">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) =>
+              setFormData({ ...formData, isActive: e.target.checked })
+            }
+            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+          />
+          <label
+            htmlFor="isActive"
+            className="ml-2 text-sm font-medium text-gray-700"
+          >
+            Kích hoạt flipbook này
+          </label>
+        </div>
+        <p className="text-xs text-gray-500 pl-6">
+          Nếu bỏ chọn (tạm khóa), nội dung Flipbook sẽ ngay lập tức bị ẩn trên
+          tất cả Thực đơn và Thông tin đang gắn nó. Thực đơn/Thông tin chỉ dùng
+          Flipbook này cũng sẽ tự động ẩn phía khách.
+        </p>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
         {flipbook && !hasChanges && (
           <div className="text-sm text-gray-500 flex items-center">
             Không có thay đổi
@@ -528,6 +552,18 @@ export default function FlipbookForm({ flipbook }: FlipbookFormProps) {
         >
           Hủy
         </button>
+        {flipbook && (
+          <AdminDeleteButton
+            endpoint={`/api/flipbook/${flipbook.id}`}
+            itemName={flipbook.name}
+            entityLabel="flipbook"
+            redirectTo="/admin/flipbooks"
+            variant="form"
+            disabled={loading || convertingPdf}
+            className="ml-auto"
+            warningNote="Nếu flipbook này đang được gán vào Thực đơn hoặc Thông tin hướng dẫn, liên kết sẽ tự động được gỡ bỏ."
+          />
+        )}
       </div>
     </form>
   );

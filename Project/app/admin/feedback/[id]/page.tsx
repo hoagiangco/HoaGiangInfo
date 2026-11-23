@@ -5,6 +5,8 @@ import { requirePermission } from '@/lib/auth/guard';
 import { audit } from '@/lib/auth/audit';
 import { hasPermission } from '@/lib/auth/permissions';
 import { CRITERIA_LABELS, STATUS_LABELS, VENUE_LABELS, buildFeedbackWhere } from '@/lib/feedback';
+import { languageAdminLabels, normalizeLanguage } from '@/lib/i18n';
+import { formatDateTimeVN } from '@/lib/locale';
 import FeedbackManagePanel from '@/components/FeedbackManagePanel';
 
 export default async function FeedbackDetailPage({ params }: { params: { id: string } }) {
@@ -38,9 +40,9 @@ export default async function FeedbackDetailPage({ params }: { params: { id: str
   return (
     <div className="max-w-5xl">
       <Link href="/admin/feedback" className="text-sm text-primary-600">← Danh sách phản hồi</Link>
-      <h1 className="text-2xl font-bold text-gray-800 mt-2 mb-6">
+      <h1 className="font-serif text-2xl font-bold text-slate-900 mt-2 mb-6">
         {fb.overallRating} <span className="text-yellow-400">★</span> · {VENUE_LABELS[fb.venue] ?? fb.venue}
-        <span className="ml-3 text-sm font-normal text-gray-500">{fb.createdAt.toLocaleString('vi-VN')}</span>
+        <span className="ml-3 font-sans text-sm font-normal text-slate-500">{formatDateTimeVN(fb.createdAt)}</span>
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -56,7 +58,7 @@ export default async function FeedbackDetailPage({ params }: { params: { id: str
               ))}
               <div><span className="text-gray-500">NPS: </span>{fb.npsScore ?? '—'}</div>
               <div><span className="text-gray-500">Phòng/Bàn: </span>{fb.location ?? '—'}</div>
-              <div><span className="text-gray-500">Ngôn ngữ: </span>{fb.language}</div>
+              <div><span className="text-gray-500">Ngôn ngữ: </span>{languageAdminLabels[normalizeLanguage(fb.language)]}</div>
               <div><span className="text-gray-500">Trạng thái: </span>{STATUS_LABELS[fb.status]}</div>
               <div><span className="text-gray-500">Người xử lý: </span>{fb.assignee?.name ?? '—'}</div>
             </div>
@@ -78,7 +80,7 @@ export default async function FeedbackDetailPage({ params }: { params: { id: str
               <ul className="space-y-3 text-sm">
                 {fb.events.map((e) => (
                   <li key={e.id} className="border-l-2 border-gray-200 pl-3">
-                    <p className="text-xs text-gray-500">{e.createdAt.toLocaleString('vi-VN')} · {e.userEmail ?? 'hệ thống'}</p>
+                    <p className="text-xs text-gray-500">{formatDateTimeVN(e.createdAt)} · {e.userEmail ?? 'hệ thống'}</p>
                     <p className="whitespace-pre-wrap">{e.detail}</p>
                   </li>
                 ))}

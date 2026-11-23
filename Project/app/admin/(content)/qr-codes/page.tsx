@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import QRCodeGenerator from '@/components/QRCodeGenerator';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { FiPlus, FiBox, FiEdit3, FiCheckCircle, FiXCircle, FiLayers } from 'react-icons/fi';
 
 export default async function QRCodesPage() {
@@ -180,15 +181,24 @@ export default async function QRCodesPage() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                      <QRCodeGenerator token={qr.token} />
-                      <Link
-                        href={`/admin/qr-codes/${qr.id}`}
-                        className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
-                      >
-                        <FiEdit3 className="w-3.5 h-3.5" />
-                        <span>Sửa</span>
-                      </Link>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <QRCodeGenerator token={qr.token} />
+                        <Link
+                          href={`/admin/qr-codes/${qr.id}`}
+                          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                        >
+                          <FiEdit3 className="w-3.5 h-3.5" />
+                          <span>Sửa</span>
+                        </Link>
+                        <AdminDeleteButton
+                          endpoint={`/api/qr/${qr.id}`}
+                          itemName={`${qr.name} (${qr.token})`}
+                          entityLabel="mã QR"
+                          variant="table"
+                          warningNote="Lịch sử quét của mã QR này cũng sẽ bị xóa theo."
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))

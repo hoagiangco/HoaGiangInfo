@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DEPARTMENTS, ROLES, ROLE_LABELS, canManageRole, type Role } from '@/lib/auth/permissions';
+import { formatDateTimeVN } from '@/lib/locale';
 import { FiUserPlus, FiKey, FiLock, FiUnlock } from 'react-icons/fi';
+import AdminDeleteButton from './AdminDeleteButton';
 
 interface UserRow {
   id: string;
@@ -181,7 +183,7 @@ export default function UsersManager({ users, actorRole, actorId }: { users: Use
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
-                      {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('vi-VN') : 'Chưa từng'}
+                      {formatDateTimeVN(u.lastLoginAt, { fallback: 'Chưa từng' })}
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -208,18 +210,28 @@ export default function UsersManager({ users, actorRole, actorId }: { users: Use
                             <span>Đổi pass</span>
                           </button>
                           {!isSelf && (
-                            <button
-                              disabled={busy}
-                              onClick={() => call(`/api/internal/users/${u.id}`, 'PATCH', { isActive: !u.isActive })}
-                              className={`inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                                u.isActive
-                                  ? 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200'
-                                  : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
-                              }`}
-                            >
-                              {u.isActive ? <FiLock className="w-3.5 h-3.5" /> : <FiUnlock className="w-3.5 h-3.5" />}
-                              <span>{u.isActive ? 'Khóa' : 'Mở'}</span>
-                            </button>
+                            <>
+                              <button
+                                disabled={busy}
+                                onClick={() => call(`/api/internal/users/${u.id}`, 'PATCH', { isActive: !u.isActive })}
+                                className={`inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                  u.isActive
+                                    ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200'
+                                    : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
+                                }`}
+                              >
+                                {u.isActive ? <FiLock className="w-3.5 h-3.5" /> : <FiUnlock className="w-3.5 h-3.5" />}
+                                <span>{u.isActive ? 'Khóa' : 'Mở'}</span>
+                              </button>
+                              <AdminDeleteButton
+                                endpoint={`/api/internal/users/${u.id}`}
+                                itemName={`${u.name} (${u.email})`}
+                                entityLabel="tài khoản"
+                                variant="table"
+                                disabled={busy}
+                                warningNote="Tài khoản và toàn bộ phiên đăng nhập của nhân viên này sẽ bị xóa. Các tài liệu hoặc phản hồi trước đây sẽ vẫn được giữ lại."
+                              />
+                            </>
                           )}
                         </>
                       )}

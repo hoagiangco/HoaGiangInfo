@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { ModuleTranslationFields } from '@/lib/translations';
 
 export async function GET() {
   try {
@@ -25,13 +27,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, displayName, description, icon, route, isPublic } = body;
+    const { name, displayName, description, translations, icon, route, isPublic } = body;
 
     const module = await prisma.module.create({
       data: {
         name,
         displayName,
         description,
+        translations: toPrismaTranslations<ModuleTranslationFields>(translations, [
+          'displayName',
+          'description',
+        ]),
         icon,
         route,
         isPublic: isPublic || false,

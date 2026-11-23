@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AdminDeleteButton from './AdminDeleteButton';
 
 interface Module {
   id: string;
@@ -88,29 +89,6 @@ export default function QRCodeEditForm({
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra khi cập nhật QR code');
     } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!confirm('Bạn có chắc chắn muốn xóa mã QR này? Hành động này không thể hoàn tác.')) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/qr/${qrCode.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete QR code');
-      }
-
-      router.push('/admin/qr-codes');
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa QR code');
       setLoading(false);
     }
   }
@@ -231,14 +209,17 @@ export default function QRCodeEditForm({
         >
           Hủy
         </button>
-        <button
-          type="button"
-          onClick={handleDelete}
+        <AdminDeleteButton
+          endpoint={`/api/qr/${qrCode.id}`}
+          itemName={`${qrCode.name} (${qrCode.token})`}
+          entityLabel="mã QR"
+          redirectTo="/admin/qr-codes"
+          variant="form"
+          buttonLabel="Xóa Mã QR"
           disabled={loading}
-          className="ml-auto bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all"
-        >
-          Xóa Mã QR
-        </button>
+          className="ml-auto"
+          warningNote="Lịch sử quét của mã QR này cũng sẽ bị xóa theo."
+        />
       </div>
     </form>
   );

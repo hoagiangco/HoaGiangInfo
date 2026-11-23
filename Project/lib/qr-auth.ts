@@ -28,7 +28,7 @@ export async function verifyQRToken(token: string): Promise<QRCodeInfo | null> {
       include: {
         modules: {
           include: {
-            module: true,
+            module: { select: { name: true } },
           },
         },
       },
@@ -44,7 +44,7 @@ export async function verifyQRToken(token: string): Promise<QRCodeInfo | null> {
         include: {
           modules: {
             include: {
-              module: true,
+              module: { select: { name: true } },
             },
           },
         },

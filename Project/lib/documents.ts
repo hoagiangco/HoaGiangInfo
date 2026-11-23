@@ -2,21 +2,21 @@
 import { isAdminRole, rolesAtOrBelow, type AuthUser } from '@/lib/auth/permissions';
 
 export const DOC_CATEGORIES: Record<string, string> = {
-  maintenance: 'Báº£o trÃ¬',
-  cleaning: 'Vá»‡ sinh',
-  safety: 'An toÃ n',
-  equipment: 'Thiáº¿t bá»‹',
-  procedures: 'Quy trÃ¬nh',
-  hr: 'NhÃ¢n sá»±',
-  finance: 'TÃ i chÃ­nh',
-  other: 'KhÃ¡c',
+  maintenance: 'Bảo trì',
+  cleaning: 'Vệ sinh',
+  safety: 'An toàn',
+  equipment: 'Thiết bị',
+  procedures: 'Quy trình',
+  hr: 'Nhân sự',
+  finance: 'Tài chính',
+  other: 'Khác',
 };
 
 export const VISIBILITY_LABELS: Record<string, string> = {
-  ALL_STAFF: 'ToÃ n bá»™ nhÃ¢n viÃªn',
-  DEPARTMENT: 'Theo phÃ²ng ban',
-  ROLE_MIN: 'Tá»« vai trÃ² trá»Ÿ lÃªn',
-  PRIVATE: 'RiÃªng tÆ° (admin + ngÆ°á»i táº£i lÃªn)',
+  ALL_STAFF: 'Toàn bộ nhân viên',
+  DEPARTMENT: 'Theo phòng ban',
+  ROLE_MIN: 'Từ vai trò trở lên',
+  PRIVATE: 'Riêng tư (quản trị viên + người tải lên)',
 };
 
 /**

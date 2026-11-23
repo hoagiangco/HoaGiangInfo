@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DEPARTMENTS, ROLES, ROLE_LABELS, type Role } from '@/lib/auth/permissions';
 import { DOC_CATEGORIES, VISIBILITY_LABELS } from '@/lib/documents';
+import AdminDeleteButton from './AdminDeleteButton';
 
 export interface DocumentFormValue {
   id: string;
@@ -79,20 +80,6 @@ export default function DocumentForm({ document: doc, canDelete }: Props) {
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra');
     } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!doc || !confirm('Xóa tài liệu này? Không thể khôi phục.')) return;
-    setLoading(true);
-    const res = await fetch(`/api/internal/documents/${doc.id}`, { method: 'DELETE' });
-    if (res.ok) {
-      router.push('/admin/documents');
-      router.refresh();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || 'Không xóa được');
       setLoading(false);
     }
   }
@@ -199,10 +186,20 @@ export default function DocumentForm({ document: doc, canDelete }: Props) {
           Hủy
         </button>
         {doc && canDelete && (
-          <button type="button" onClick={handleDelete} disabled={loading}
-            className="ml-auto bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-            Xóa tài liệu
-          </button>
+          <AdminDeleteButton
+            endpoint={`/api/internal/documents/${doc.id}`}
+            itemName={doc.title}
+            entityLabel="tài liệu"
+            redirectTo="/admin/documents"
+            variant="form"
+            disabled={loading}
+            className="ml-auto"
+            warningNote={
+              doc.fileName
+                ? `Tệp đính kèm "${doc.fileName}" cũng sẽ bị xóa khỏi máy chủ.`
+                : undefined
+            }
+          />
         )}
       </div>
     </form>

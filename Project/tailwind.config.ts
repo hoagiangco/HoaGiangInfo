@@ -9,8 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ["var(--font-serif)", "Playfair Display", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "Plus Jakarta Sans", "system-ui", "sans-serif"],
+        serif: [
+          "var(--font-serif)",
+          "Lora",
+          "Georgia",
+          "Times New Roman",
+          "Noto Serif SC",
+          "Songti SC",
+          "STSong",
+          "serif",
+        ],
+        sans: [
+          "var(--font-sans)",
+          "Be Vietnam Pro",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Noto Sans SC",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          "sans-serif",
+        ],
       },
       colors: {
         gold: {

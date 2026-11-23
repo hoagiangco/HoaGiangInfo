@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminSession } from '@/lib/admin-auth';
+import { toPrismaTranslations } from '@/lib/prisma-json';
+import type { InformationTranslationFields } from '@/lib/translations';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const isAdmin = await checkAdminSession();
     const information = await prisma.information.findMany({
-      where: { isActive: true },
+      where: isAdmin ? undefined : { isActive: true },
+      include: {
+        flipbook: true,
+      },
       orderBy: { order: 'asc' },
     });
-    return NextResponse.json(information);
+    const sanitized = isAdmin
+      ? information
+      : information.map((info) => ({
+          ...info,
+          flipbook: info.flipbook && info.flipbook.isActive ? info.flipbook : null,
+        }));
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error('Error fetching information:', error);
     return NextResponse.json(
@@ -26,15 +40,34 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { category, title, content, icon, order } = body;
+    const {
+      category,
+      title,
+      content,
+      translations,
+      fileUrl,
+      fileType,
+      flipbookId,
+      icon,
+      order,
+      isActive,
+    } = body;
 
     const information = await prisma.information.create({
       data: {
         category,
         title,
-        content,
+        content: content || '',
+        translations: toPrismaTranslations<InformationTranslationFields>(
+          translations,
+          ['title', 'content', 'fileUrl', 'flipbookId']
+        ),
+        fileUrl: fileType === 'flipbook' ? null : fileUrl || null,
+        fileType: fileType || null,
+        flipbookId: fileType === 'flipbook' ? flipbookId || null : null,
         icon,
         order: order || 0,
+        isActive: isActive !== undefined ? isActive : true,
       },
     });
 
@@ -47,13 +80,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-

@@ -7,6 +7,7 @@ import { DOC_CATEGORIES, VISIBILITY_LABELS } from '@/lib/documents';
 import { sanitizeRichText } from '@/lib/sanitize';
 import PDFViewer from '@/components/PDFViewer';
 import DocumentForm from '@/components/DocumentForm';
+import AdminDeleteButton from '@/components/AdminDeleteButton';
 
 export default async function DocumentPage({
   params,
@@ -28,7 +29,7 @@ export default async function DocumentPage({
   if (searchParams.edit === '1' && canEdit) {
     return (
       <div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Chỉnh sửa tài liệu</h1>
+        <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight mb-6">Chỉnh Sửa Tài Liệu</h1>
         <DocumentForm
           canDelete
           document={{
@@ -59,10 +60,24 @@ export default async function DocumentPage({
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="text-sm text-gray-500">{DOC_CATEGORIES[doc.category] ?? doc.category} · {VISIBILITY_LABELS[doc.visibility]}</p>
-          <h1 className="text-3xl font-bold text-gray-800">{doc.title}</h1>
+          <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight">{doc.title}</h1>
         </div>
         {canEdit && (
-          <a href={`/admin/documents/${doc.id}?edit=1`} className="bg-gray-700 text-white px-4 py-2 rounded-lg">Chỉnh sửa</a>
+          <div className="flex items-center gap-2 shrink-0">
+            <a href={`/admin/documents/${doc.id}?edit=1`} className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors">Chỉnh sửa</a>
+            <AdminDeleteButton
+              endpoint={`/api/internal/documents/${doc.id}`}
+              itemName={doc.title}
+              entityLabel="tài liệu"
+              redirectTo="/admin/documents"
+              variant="card"
+              warningNote={
+                doc.fileName
+                  ? `Tệp đính kèm "${doc.fileName}" cũng sẽ bị xóa khỏi máy chủ.`
+                  : undefined
+              }
+            />
+          </div>
         )}
       </div>
 

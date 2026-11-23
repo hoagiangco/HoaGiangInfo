@@ -20,13 +20,16 @@ import {
   FiShield,
   FiKey,
   FiAward,
-  FiExternalLink
+  FiExternalLink,
+  FiLayout
 } from 'react-icons/fi';
 import { ROLE_LABELS, type Permission, type Role } from '@/lib/auth/permissions';
+import type { BrandingConfig } from '@/lib/footer-config';
 
 interface AdminSidebarProps {
   user: { name: string; email: string; role: Role };
   permissions: Permission[];
+  branding?: BrandingConfig;
 }
 
 interface Item {
@@ -61,6 +64,7 @@ const sections: Section[] = [
       { href: '/admin/services', label: 'Dịch Vụ & Tiện Ích', icon: FiBriefcase, anyOf: ['content.manage'] },
       { href: '/admin/information', label: 'Thông Tin Hướng Dẫn', icon: FiInfo, anyOf: ['content.manage'] },
       { href: '/admin/floor-plans', label: 'Sơ Đồ Phòng & Khu Vực', icon: FiMap, anyOf: ['content.manage'] },
+      { href: '/admin/footer', label: 'Logo, Thương Hiệu & Footer', icon: FiLayout, anyOf: ['content.manage'] },
       { href: '/admin/export-import', label: 'Sao Lưu & Xuất Dữ Liệu', icon: FiDownload, anyOf: ['content.manage'] },
     ],
   },
@@ -74,7 +78,7 @@ const sections: Section[] = [
   },
 ];
 
-export default function AdminSidebar({ user, permissions }: AdminSidebarProps) {
+export default function AdminSidebar({ user, permissions, branding }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -100,15 +104,25 @@ export default function AdminSidebar({ user, permissions }: AdminSidebarProps) {
       {/* Brand Header */}
       <div className="p-6 pb-5 border-b border-[#1E293B]/80 bg-[#0F172A]/50">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B58E38] to-[#866526] text-white flex items-center justify-center shadow-md shadow-[#866526]/20 shrink-0">
-            <FiAward className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="font-serif text-base font-bold tracking-[0.15em] text-[#FAF7EE] leading-none">
-              HOA GIANG
+          {branding?.logoUrl ? (
+            <div className="w-10 h-10 rounded-xl bg-white/95 border border-[#C5A456]/60 p-1 flex items-center justify-center shadow-md shrink-0 overflow-hidden">
+              <img
+                src={branding.logoUrl}
+                alt={branding.brandTitle || 'HOA GIANG'}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B58E38] to-[#866526] text-white flex items-center justify-center shadow-md shadow-[#866526]/20 shrink-0">
+              <FiAward className="w-5 h-5" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="font-serif text-base font-bold tracking-[0.15em] text-[#FAF7EE] leading-none truncate">
+              {branding?.brandTitle || 'HOA GIANG'}
             </h1>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[#C5A456] font-semibold mt-1">
-              Hoa Binh Rach Gia Resort
+            <p className="text-[9px] uppercase tracking-[0.16em] text-[#C5A456] font-semibold mt-1 truncate">
+              {branding?.brandSubtitle?.vi || 'Hòa Bình Rạch Giá Resort'}
             </p>
           </div>
         </div>

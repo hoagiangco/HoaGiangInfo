@@ -26,15 +26,11 @@ import {
 interface FlipbookViewerProps {
   pages: string[];
   title?: string;
-  docLang?: 'vi' | 'en';
-  onChangeDocLang?: (lang: 'vi' | 'en') => void;
 }
 
 export default function FlipbookViewer({
   pages,
   title,
-  docLang,
-  onChangeDocLang,
 }: FlipbookViewerProps) {
   const { language } = useLanguage();
   const [currentPage, setCurrentPage] = useState(0);
@@ -333,7 +329,7 @@ export default function FlipbookViewer({
       <div className="w-full min-h-[380px] bg-[#1C1917] rounded-2xl border border-[#EBDDC3] p-8 flex flex-col items-center justify-center text-center space-y-3">
         <FiRefreshCw className="w-7 h-7 text-[#D7BD81] animate-spin" />
         <p className="text-stone-200 text-sm font-medium">
-          Đang chuyển đổi tài liệu PDF sang các trang Flipbook...
+          {getTranslation(language, 'converting_pdf_flipbook')}
         </p>
       </div>
     );
@@ -377,82 +373,61 @@ export default function FlipbookViewer({
         }`}
         style={!isFullscreen && frameWidth ? { width: `${frameWidth}px`, maxWidth: '100%' } : undefined}
       >
-        {/* Unified Compact Luxury Control Bar */}
-        <div className="bg-[#1C1917]/95 backdrop-blur-md border-b border-stone-800 text-stone-100 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 shrink-0 z-30">
+        {/* Unified Compact High-Contrast Control Bar — Fits cleanly down to 360px Android */}
+        <div className="bg-[#0F172A] border-b border-slate-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 shrink-0 z-30">
           {/* Left: Title & Page Indicator */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {title && (
-              <h3 className="font-serif text-xs sm:text-sm font-semibold text-[#E6D3A7] truncate max-w-[140px] sm:max-w-[260px]">
+              <h3 className="hidden sm:block font-serif text-xs sm:text-sm font-bold text-[#E8CA7A] truncate max-w-[260px]">
                 {title}
               </h3>
             )}
             {(totalPages > 1 || !title) && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-mono font-medium bg-stone-800 text-[#E6D3A7] border border-stone-700 shrink-0">
-                {totalPages > 1 ? `Trang ${pageLabel}` : 'Hình ảnh'}
+              <span className="inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-mono font-bold bg-slate-800 text-[#E8CA7A] border border-slate-600 shrink-0 whitespace-nowrap">
+                {totalPages > 1 ? (
+                  <>
+                    <span className="sm:hidden">{pageLabel}</span>
+                    <span className="hidden sm:inline">
+                      {getTranslation(language, 'page_label', { label: pageLabel })}
+                    </span>
+                  </>
+                ) : (
+                  getTranslation(language, 'image')
+                )}
               </span>
             )}
           </div>
 
-          {/* Right: Smart Controls */}
+          {/* Right: Touch-Friendly High-Contrast Controls */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {/* Bilingual VI / EN Switcher */}
-            {docLang && onChangeDocLang && (
-              <div className="flex items-center bg-stone-800/90 p-0.5 rounded-lg border border-stone-700 mr-0.5">
-                <button
-                  type="button"
-                  onClick={() => onChangeDocLang('vi')}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors ${
-                    docLang === 'vi'
-                      ? 'bg-[#866526] text-white'
-                      : 'text-stone-400 hover:text-white'
-                  }`}
-                  title="Xem thực đơn Tiếng Việt"
-                >
-                  VI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onChangeDocLang('en')}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors ${
-                    docLang === 'en'
-                      ? 'bg-[#866526] text-white'
-                      : 'text-stone-400 hover:text-white'
-                  }`}
-                  title="View English Menu"
-                >
-                  EN
-                </button>
-              </div>
-            )}
-
             {/* Single / Double Spread Toggle on wide screens */}
             {canShowDoubleToggle && (
-              <div className="hidden md:flex items-center bg-stone-800/90 p-0.5 rounded-lg border border-stone-700">
+              <div className="hidden md:flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-600">
                 <button
                   type="button"
                   onClick={() => setPageLayout('single')}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
                     !isDoublePage
-                      ? 'bg-[#866526] text-white'
-                      : 'text-stone-300 hover:text-white'
+                      ? 'bg-[#E8CA7A] text-[#0F172A]'
+                      : 'text-slate-200 hover:text-white'
                   }`}
-                  title="Chế độ xem 1 trang"
+                  title={getTranslation(language, 'single_page_tooltip')}
                 >
                   <FiFile className="w-3 h-3" />
-                  <span>1 trang</span>
+                  <span>{getTranslation(language, 'single_page')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPageLayout('double')}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
                     isDoublePage
-                      ? 'bg-[#866526] text-white'
-                      : 'text-stone-300 hover:text-white'
+                      ? 'bg-[#E8CA7A] text-[#0F172A]'
+                      : 'text-slate-200 hover:text-white'
                   }`}
-                  title="Chế độ xem 2 trang đôi"
+                  title={getTranslation(language, 'double_page_tooltip')}
                 >
                   <FiBookOpen className="w-3 h-3" />
-                  <span>2 trang</span>
+                  <span>{getTranslation(language, 'double_page')}</span>
                 </button>
               </div>
             )}
@@ -464,24 +439,26 @@ export default function FlipbookViewer({
                 onClick={() =>
                   setFitPref((prev) => (prev === 'readable' ? 'viewport' : 'readable'))
                 }
-                className={`hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-medium transition-colors ${
+                className={`hidden sm:inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border text-[11px] font-bold transition-colors ${
                   fitPref === 'viewport'
-                    ? 'bg-[#866526] text-white border-[#B58E38]'
-                    : 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700'
+                    ? 'bg-[#E8CA7A] text-[#0F172A] border-[#E8CA7A]'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-600'
                 }`}
                 title={
                   fitPref === 'viewport'
-                    ? 'Chuyển sang chế độ đầy đặn dễ đọc'
-                    : 'Thu gọn vừa 1 màn hình'
+                    ? getTranslation(language, 'fit_readable_tooltip')
+                    : getTranslation(language, 'fit_viewport_tooltip')
                 }
               >
                 {fitPref === 'viewport' ? (
-                  <FiMaximize className="w-3 h-3" />
+                  <FiMaximize className="w-3.5 h-3.5" />
                 ) : (
-                  <FiMinimize className="w-3 h-3" />
+                  <FiMinimize className="w-3.5 h-3.5" />
                 )}
                 <span className="hidden lg:inline">
-                  {fitPref === 'viewport' ? 'Đầy đặn' : 'Vừa khung'}
+                  {fitPref === 'viewport'
+                    ? getTranslation(language, 'fit_readable')
+                    : getTranslation(language, 'fit_viewport')}
                 </span>
               </button>
             )}
@@ -491,14 +468,14 @@ export default function FlipbookViewer({
               <button
                 type="button"
                 onClick={() => setShowThumbnails((prev) => !prev)}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors border ${
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${
                   showThumbnails
-                    ? 'bg-[#866526] text-white border-[#B58E38]'
-                    : 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700'
+                    ? 'bg-[#E8CA7A] text-[#0F172A] border-[#E8CA7A]'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-600'
                 }`}
-                title="Danh sách trang"
+                title={getTranslation(language, 'thumbnails_tooltip')}
               >
-                <FiGrid className="w-3.5 h-3.5" />
+                <FiGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             )}
 
@@ -506,23 +483,23 @@ export default function FlipbookViewer({
             <button
               type="button"
               onClick={() => handleZoomChange(zoom - 0.25)}
-              className="w-7 h-7 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 rounded-lg flex items-center justify-center text-xs font-bold transition-colors"
+              className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-lg flex items-center justify-center text-sm sm:text-base font-bold transition-colors"
               title={getTranslation(language, 'zoom_out')}
             >
-              -
+              −
             </button>
             <button
               type="button"
               onClick={resetTransform}
-              className="text-[11px] font-mono text-stone-200 hover:text-[#E6D3A7] min-w-[40px] text-center px-1 py-1 rounded hover:bg-stone-800 transition-colors"
-              title="Nhấn để đặt lại kích thước chuẩn (100%)"
+              className="text-[11px] sm:text-xs font-mono font-bold text-white hover:text-[#E8CA7A] min-w-[36px] sm:min-w-[42px] h-8 text-center px-1 rounded-lg hover:bg-slate-800 transition-colors"
+              title={getTranslation(language, 'reset_zoom')}
             >
               {Math.round(zoom * 100)}%
             </button>
             <button
               type="button"
               onClick={() => handleZoomChange(zoom + 0.25)}
-              className="w-7 h-7 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 rounded-lg flex items-center justify-center text-xs font-bold transition-colors"
+              className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-lg flex items-center justify-center text-sm sm:text-base font-bold transition-colors"
               title={getTranslation(language, 'zoom_in')}
             >
               +
@@ -532,26 +509,26 @@ export default function FlipbookViewer({
               <button
                 type="button"
                 onClick={resetTransform}
-                className="w-7 h-7 bg-stone-800 hover:bg-stone-700 text-[#E6D3A7] border border-stone-700 rounded-lg flex items-center justify-center transition-colors"
-                title="Đặt lại góc nhìn"
+                className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-[#E8CA7A] border border-slate-600 rounded-lg flex items-center justify-center transition-colors"
+                title={getTranslation(language, 'reset_view')}
               >
-                <FiRefreshCw className="w-3.5 h-3.5" />
+                <FiRefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             )}
 
             <button
               type="button"
               onClick={rotateContent}
-              className="w-7 h-7 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 rounded-lg flex items-center justify-center transition-colors"
+              className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-lg flex items-center justify-center transition-colors"
               title={getTranslation(language, 'rotate')}
             >
-              <FiRotateCw className="w-3.5 h-3.5" />
+              <FiRotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="w-7 h-7 bg-[#866526] hover:bg-[#A38035] text-white border border-[#B58E38] rounded-lg flex items-center justify-center transition-colors"
+              className="w-8 h-8 bg-[#E8CA7A] hover:bg-[#F3DA94] text-[#0F172A] border border-[#E8CA7A] rounded-lg flex items-center justify-center transition-colors"
               title={
                 isFullscreen
                   ? getTranslation(language, 'exit_fullscreen')
@@ -559,9 +536,9 @@ export default function FlipbookViewer({
               }
             >
               {isFullscreen ? (
-                <FiMinimize2 className="w-3.5 h-3.5" />
+                <FiMinimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               ) : (
-                <FiMaximize2 className="w-3.5 h-3.5" />
+                <FiMaximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
             </button>
           </div>
@@ -633,7 +610,7 @@ export default function FlipbookViewer({
                       <div className="w-full h-full flex items-center justify-center bg-white rounded-xl shadow-2xl p-6">
                         <div className="text-center">
                           <p className="text-stone-600 text-sm mb-3">
-                            Trang PDF #{pageNumber}
+                            {getTranslation(language, 'pdf_page_number', { page: pageNumber })}
                           </p>
                           <a
                             href={pageUrl}
@@ -641,14 +618,14 @@ export default function FlipbookViewer({
                             rel="noopener noreferrer"
                             className="text-xs font-semibold text-white bg-[#866526] hover:bg-[#A38035] px-4 py-2 rounded-lg inline-block"
                           >
-                            Mở PDF trong tab mới
+                            {getTranslation(language, 'open_pdf_new_tab')}
                           </a>
                         </div>
                       </div>
                     ) : (
                       <img
                         src={pageUrl}
-                        alt={`Trang ${pageNumber}`}
+                        alt={`${getTranslation(language, 'page')} ${pageNumber}`}
                         draggable={false}
                         onLoad={(e) => {
                           if (idx === 0) {
@@ -722,7 +699,7 @@ export default function FlipbookViewer({
                 >
                   <img
                     src={pageUrl}
-                    alt={`Trang ${idx + 1}`}
+                    alt={`${getTranslation(language, 'page')} ${idx + 1}`}
                     className="w-full h-full object-cover bg-stone-900"
                   />
                   <span
@@ -740,34 +717,58 @@ export default function FlipbookViewer({
           </div>
         )}
 
-        {/* Slim Bottom Progress Bar & Page Pills */}
+        {/* Thumb-Friendly Bottom Navigation & Page Dots */}
         {totalPages > 1 && (
-          <div className="bg-[#1C1917] border-t border-stone-800 px-3 py-1.5 flex items-center justify-center gap-1.5 flex-wrap shrink-0">
-            {resolvedPages.map((_, index) => {
-              if (isDoublePage && index % 2 !== 0) return null;
-              const isActive = isDoublePage
-                ? index === currentPage || index + 1 === currentPage
-                : index === currentPage;
+          <div className="bg-[#0F172A] border-t border-slate-700 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={prevPage}
+              disabled={currentPage === 0 || isSliding}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-bold disabled:opacity-30 transition-colors shrink-0"
+              title={getTranslation(language, 'previous_page')}
+            >
+              <FiChevronLeft className="w-4 h-4" />
+              <span>{getTranslation(language, 'before')}</span>
+            </button>
 
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => goToPage(index)}
-                  disabled={isSliding}
-                  className={`h-1.5 rounded-full transition-all ${
-                    isActive
-                      ? 'bg-[#D7BD81] w-6'
-                      : 'bg-stone-600 hover:bg-stone-400 w-1.5'
-                  }`}
-                  title={`${getTranslation(language, 'page')} ${
-                    isDoublePage && index + 1 < totalPages
-                      ? `${index + 1}-${index + 2}`
-                      : index + 1
-                  }`}
-                />
-              );
-            })}
+            <div className="flex items-center justify-center gap-1.5 flex-wrap overflow-hidden max-h-5">
+              {resolvedPages.map((_, index) => {
+                if (isDoublePage && index % 2 !== 0) return null;
+                const isActive = isDoublePage
+                  ? index === currentPage || index + 1 === currentPage
+                  : index === currentPage;
+
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => goToPage(index)}
+                    disabled={isSliding}
+                    className={`h-2 rounded-full transition-all ${
+                      isActive
+                        ? 'bg-[#E8CA7A] w-6'
+                        : 'bg-slate-600 hover:bg-slate-400 w-2'
+                    }`}
+                    title={`${getTranslation(language, 'page')} ${
+                      isDoublePage && index + 1 < totalPages
+                        ? `${index + 1}-${index + 2}`
+                        : index + 1
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={nextPage}
+              disabled={currentPage + step >= totalPages || isSliding}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-lg bg-[#E8CA7A] hover:bg-[#F3DA94] text-[#0F172A] text-xs font-bold disabled:opacity-30 transition-colors shrink-0"
+              title={getTranslation(language, 'next_page')}
+            >
+              <span>{getTranslation(language, 'after')}</span>
+              <FiChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>

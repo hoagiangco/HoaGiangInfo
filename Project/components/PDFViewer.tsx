@@ -34,16 +34,12 @@ interface PDFViewerProps {
   fileUrl: string;
   fileName: string;
   title?: string;
-  docLang?: 'vi' | 'en';
-  onChangeDocLang?: (lang: 'vi' | 'en') => void;
 }
 
 export default function PDFViewer({
   fileUrl,
   fileName,
   title,
-  docLang,
-  onChangeDocLang,
 }: PDFViewerProps) {
   const { language } = useLanguage();
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -169,7 +165,7 @@ export default function PDFViewer({
 
   function onDocumentLoadError(error: Error) {
     console.error('Error loading PDF:', error);
-    setLoadError(error?.message || 'Không thể tải tài liệu PDF.');
+    setLoadError(error?.message || getTranslation(language, 'pdf_load_error'));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -258,68 +254,47 @@ export default function PDFViewer({
         }`}
         style={!isFullscreen && frameWidth ? { width: `${frameWidth}px`, maxWidth: '100%' } : undefined}
       >
-        {/* Top Unified Control Bar */}
-        <div className="bg-[#1C1917]/95 backdrop-blur-md border-b border-stone-800 text-stone-100 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 shrink-0 z-30">
+        {/* Top Unified High-Contrast Control Bar — Fits cleanly down to 360px Android */}
+        <div className="bg-[#0F172A] border-b border-slate-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 shrink-0 z-30">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {title && (
-              <span className="font-serif text-xs sm:text-sm font-semibold text-[#E6D3A7] truncate max-w-[140px] sm:max-w-[240px]">
+              <span className="hidden sm:inline-block font-serif text-xs sm:text-sm font-bold text-[#E8CA7A] truncate max-w-[240px]">
                 {title}
               </span>
             )}
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-mono font-medium bg-stone-800 text-[#E6D3A7] border border-stone-700 shrink-0">
-              Trang {pageLabel}
+            <span className="inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-mono font-bold bg-slate-800 text-[#E8CA7A] border border-slate-600 shrink-0 whitespace-nowrap">
+              <span className="sm:hidden">{pageLabel}</span>
+              <span className="hidden sm:inline">
+                {getTranslation(language, 'page_label', { label: pageLabel })}
+              </span>
             </span>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {/* Bilingual VI / EN Switcher */}
-            {docLang && onChangeDocLang && (
-              <div className="flex items-center bg-stone-800/90 p-0.5 rounded-lg border border-stone-700 mr-0.5">
-                <button
-                  type="button"
-                  onClick={() => onChangeDocLang('vi')}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors ${
-                    docLang === 'vi' ? 'bg-[#866526] text-white' : 'text-stone-400 hover:text-white'
-                  }`}
-                >
-                  VI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onChangeDocLang('en')}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors ${
-                    docLang === 'en' ? 'bg-[#866526] text-white' : 'text-stone-400 hover:text-white'
-                  }`}
-                >
-                  EN
-                </button>
-              </div>
-            )}
-
             {/* 1 page / 2 pages toggle on wide screens */}
             {canShowDoubleToggle && (
-              <div className="hidden md:flex items-center bg-stone-800/90 p-0.5 rounded-lg border border-stone-700">
+              <div className="hidden md:flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-600">
                 <button
                   type="button"
                   onClick={() => setLayoutPref('single')}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                    !isDoublePage ? 'bg-[#866526] text-white' : 'text-stone-300 hover:text-white'
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                    !isDoublePage ? 'bg-[#E8CA7A] text-[#0F172A]' : 'text-slate-200 hover:text-white'
                   }`}
-                  title="Xem 1 trang"
+                  title={getTranslation(language, 'single_page_tooltip')}
                 >
                   <FiFile className="w-3 h-3" />
-                  <span>1 trang</span>
+                  <span>{getTranslation(language, 'single_page')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setLayoutPref('double')}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                    isDoublePage ? 'bg-[#866526] text-white' : 'text-stone-300 hover:text-white'
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                    isDoublePage ? 'bg-[#E8CA7A] text-[#0F172A]' : 'text-slate-200 hover:text-white'
                   }`}
-                  title="Xem 2 trang đôi"
+                  title={getTranslation(language, 'double_page_tooltip')}
                 >
                   <FiBookOpen className="w-3 h-3" />
-                  <span>2 trang</span>
+                  <span>{getTranslation(language, 'double_page')}</span>
                 </button>
               </div>
             )}
@@ -331,24 +306,26 @@ export default function PDFViewer({
                 onClick={() =>
                   setFitPref((prev) => (prev === 'readable' ? 'viewport' : 'readable'))
                 }
-                className={`hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-medium transition-colors ${
+                className={`hidden sm:inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border text-[11px] font-bold transition-colors ${
                   fitPref === 'viewport'
-                    ? 'bg-[#866526] text-white border-[#B58E38]'
-                    : 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700'
+                    ? 'bg-[#E8CA7A] text-[#0F172A] border-[#E8CA7A]'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-600'
                 }`}
                 title={
                   fitPref === 'viewport'
-                    ? 'Chuyển sang chế độ đầy đặn dễ đọc'
-                    : 'Thu gọn vừa 1 màn hình'
+                    ? getTranslation(language, 'fit_readable_tooltip')
+                    : getTranslation(language, 'fit_viewport_tooltip')
                 }
               >
                 {fitPref === 'viewport' ? (
-                  <FiMaximize className="w-3 h-3" />
+                  <FiMaximize className="w-3.5 h-3.5" />
                 ) : (
-                  <FiMinimize className="w-3 h-3" />
+                  <FiMinimize className="w-3.5 h-3.5" />
                 )}
                 <span className="hidden lg:inline">
-                  {fitPref === 'viewport' ? 'Đầy đặn' : 'Vừa khung'}
+                  {fitPref === 'viewport'
+                    ? getTranslation(language, 'fit_readable')
+                    : getTranslation(language, 'fit_viewport')}
                 </span>
               </button>
             )}
@@ -357,23 +334,23 @@ export default function PDFViewer({
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.25).toFixed(2))))}
-              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 flex items-center justify-center text-xs font-bold transition-colors"
+              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 flex items-center justify-center text-sm sm:text-base font-bold transition-colors"
               title={getTranslation(language, 'zoom_out')}
             >
-              -
+              −
             </button>
             <button
               type="button"
               onClick={resetTransform}
-              className="text-[11px] font-mono text-stone-200 hover:text-[#E6D3A7] min-w-[40px] text-center px-1 py-1 rounded hover:bg-stone-800 transition-colors"
-              title="Đặt lại 100%"
+              className="text-[11px] sm:text-xs font-mono font-bold text-white hover:text-[#E8CA7A] min-w-[36px] sm:min-w-[42px] h-8 text-center px-1 rounded-lg hover:bg-slate-800 transition-colors"
+              title={getTranslation(language, 'reset_zoom')}
             >
               {Math.round(zoom * 100)}%
             </button>
             <button
               type="button"
               onClick={() => setZoom((z) => Math.min(2.5, Number((z + 0.25).toFixed(2))))}
-              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 flex items-center justify-center text-xs font-bold transition-colors"
+              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 flex items-center justify-center text-sm sm:text-base font-bold transition-colors"
               title={getTranslation(language, 'zoom_in')}
             >
               +
@@ -383,26 +360,26 @@ export default function PDFViewer({
               <button
                 type="button"
                 onClick={resetTransform}
-                className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 text-[#E6D3A7] border border-stone-700 flex items-center justify-center transition-colors"
-                title="Đặt lại góc nhìn"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-[#E8CA7A] border border-slate-600 flex items-center justify-center transition-colors"
+                title={getTranslation(language, 'reset_view')}
               >
-                <FiRefreshCw className="w-3.5 h-3.5" />
+                <FiRefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             )}
 
             <button
               type="button"
               onClick={() => setRotation((prev) => (prev + 90) % 360)}
-              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 flex items-center justify-center transition-colors"
               title={getTranslation(language, 'rotate')}
             >
-              <FiRotateCw className="w-3.5 h-3.5" />
+              <FiRotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="w-7 h-7 rounded-lg bg-[#866526] hover:bg-[#A38035] text-white border border-[#B58E38] flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg bg-[#E8CA7A] hover:bg-[#F3DA94] text-[#0F172A] border border-[#E8CA7A] flex items-center justify-center transition-colors"
               title={
                 isFullscreen
                   ? getTranslation(language, 'exit_fullscreen')
@@ -410,9 +387,9 @@ export default function PDFViewer({
               }
             >
               {isFullscreen ? (
-                <FiMinimize2 className="w-3.5 h-3.5" />
+                <FiMinimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               ) : (
-                <FiMaximize2 className="w-3.5 h-3.5" />
+                <FiMaximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
             </button>
           </div>
@@ -458,7 +435,7 @@ export default function PDFViewer({
           ) : loadError ? (
             <div className="max-w-md mx-auto text-center p-6 rounded-2xl bg-stone-900/90 border border-stone-700 space-y-4">
               <p className="text-[#E6D3A7] font-serif text-base font-semibold">
-                Không thể hiển thị trực tiếp file PDF
+                {getTranslation(language, 'pdf_display_error_title')}
               </p>
               <p className="text-stone-300 text-xs leading-relaxed break-words">{loadError}</p>
               <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
@@ -468,7 +445,7 @@ export default function PDFViewer({
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#866526] hover:bg-[#A38035] text-white text-xs font-semibold transition-colors"
                 >
                   <FiRefreshCw className="w-3.5 h-3.5" />
-                  <span>Thử trình xem mặc định</span>
+                  <span>{getTranslation(language, 'try_default_viewer')}</span>
                 </button>
                 <a
                   href={fileUrl}
@@ -477,7 +454,7 @@ export default function PDFViewer({
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-100 border border-stone-600 text-xs font-semibold transition-colors"
                 >
                   <FiExternalLink className="w-3.5 h-3.5" />
-                  <span>Mở tab mới</span>
+                  <span>{getTranslation(language, 'open_new_tab')}</span>
                 </a>
                 <a
                   href={fileUrl}
@@ -506,7 +483,7 @@ export default function PDFViewer({
                 }
                 error={
                   <div className="text-center py-8 text-stone-300 text-sm">
-                    Không thể tải file PDF.
+                    {getTranslation(language, 'pdf_load_error')}
                   </div>
                 }
               >
@@ -543,8 +520,8 @@ export default function PDFViewer({
           )}
         </div>
 
-        {/* Bottom Navigation & Actions */}
-        <div className="bg-[#1C1917] border-t border-stone-800 px-3 py-2 flex items-center justify-between text-xs text-stone-200 shrink-0 z-20">
+        {/* Bottom Touch-Friendly Navigation & Actions */}
+        <div className="bg-[#0F172A] border-t border-slate-700 px-3 py-2 flex items-center justify-between text-xs text-white shrink-0 z-20">
           <div className="flex items-center gap-2">
             {!useNativeFallback && numPages && numPages > 1 ? (
               <>
@@ -552,47 +529,51 @@ export default function PDFViewer({
                   type="button"
                   onClick={prevPage}
                   disabled={pageNumber <= 1}
-                  className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-[#866526] text-white flex items-center justify-center disabled:opacity-30 transition-colors"
+                  className="h-9 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 flex items-center justify-center gap-1 font-bold disabled:opacity-30 transition-colors"
                   title={getTranslation(language, 'before')}
                 >
                   <FiChevronLeft className="w-4 h-4" />
+                  <span className="hidden min-[380px]:inline">{getTranslation(language, 'before')}</span>
                 </button>
-                <span className="font-mono text-[#E6D3A7] px-1">
-                  Trang {pageLabel}
+                <span className="font-mono font-bold text-[#E8CA7A] px-1">
+                  {pageLabel}
                 </span>
                 <button
                   type="button"
                   onClick={nextPage}
                   disabled={pageNumber + step > numPages && pageNumber >= numPages}
-                  className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-[#866526] text-white flex items-center justify-center disabled:opacity-30 transition-colors"
+                  className="h-9 px-2.5 rounded-lg bg-[#E8CA7A] hover:bg-[#F3DA94] text-[#0F172A] flex items-center justify-center gap-1 font-bold disabled:opacity-30 transition-colors"
                   title={getTranslation(language, 'after')}
                 >
+                  <span className="hidden min-[380px]:inline">{getTranslation(language, 'after')}</span>
                   <FiChevronRight className="w-4 h-4" />
                 </button>
               </>
             ) : (
-              <span className="text-stone-400 text-[11px] font-mono">PDF</span>
+              <span className="text-slate-300 text-xs font-mono font-bold">PDF</span>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <a
               href={fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors"
-              title="Mở tab mới"
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-bold transition-colors"
+              title={getTranslation(language, 'open_new_tab')}
             >
-              <FiExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mở tab mới</span>
+              <FiExternalLink className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {getTranslation(language, 'open_new_tab')}
+              </span>
             </a>
             <a
               href={fileUrl}
               download={fileName}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-bold transition-colors"
               title={getTranslation(language, 'download')}
             >
-              <FiDownload className="w-3.5 h-3.5" />
+              <FiDownload className="w-4 h-4" />
               <span className="hidden sm:inline">{getTranslation(language, 'download')}</span>
             </a>
           </div>
